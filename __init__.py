@@ -1,4 +1,4 @@
-from mkutils.plotting import PlotLAMMPS
-from mkutils.plotting import PlotsGromacs
-from mkutils.plotting import save_to_file
+from plotting import PlotLAMMPS
+from plotting import PlotsGromacs
+from plotting import save_to_file
 
