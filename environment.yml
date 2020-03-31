@@ -1,0 +1,13 @@
+name: plotting
+dependencies:
+  - python>=3.7
+  - flake8
+  - pylint
+  - black
+  - mypy
+  - scipy
+  - pip
+  - numpy
+  - matplotlib
+  - pip:
+    - pytest

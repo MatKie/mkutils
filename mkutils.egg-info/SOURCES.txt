@@ -1,0 +1,6 @@
+setup.py
+mkutils.egg-info/PKG-INFO
+mkutils.egg-info/SOURCES.txt
+mkutils.egg-info/dependency_links.txt
+mkutils.egg-info/requires.txt
+mkutils.egg-info/top_level.txt
