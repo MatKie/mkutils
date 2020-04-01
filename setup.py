@@ -8,5 +8,5 @@ setup(
     author_email='m.kiesel18@imperial.ac.uk',
     description='Utility Modules for evaluating molecular simulation and odd jobs',
     packages=find_packages(),    
-    install_requires=['numpy >= 1.16.0'],
+    install_requires=['numpy'],
 )
