@@ -1,4 +1,9 @@
-*.egg-info*
+mkutils.egg-info/
 __pychace__/
 tests/.ipynb_checkpoints/
 *.swp
+*.pyc
+*.mypy_cache
+settings.json
+*.ipynb_checkpoints/
+
