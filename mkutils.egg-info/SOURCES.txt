@@ -1,4 +1,9 @@
 setup.py
+mkutils/__init__.py
+mkutils/mie.py
+mkutils/plot_functions.py
+mkutils/plotting.py
+mkutils/replica.py
 mkutils.egg-info/PKG-INFO
 mkutils.egg-info/SOURCES.txt
 mkutils.egg-info/dependency_links.txt
