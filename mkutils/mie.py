@@ -1,6 +1,76 @@
 import numpy as np
 
 
+class mixture(object):
+    def __init__(self, potentials):
+        """
+        Give potentials as mie_11, mie_22, mie_33, mie_12, mie_13, mie_23 etc.
+        
+        @Todo implement automatic mixing, pointless/elaborate for my 
+        currenct objective
+        """
+        self._check_input(potentials)
+        self.potentials = potentials
+
+    def LRC_p(self, rho, composition):
+        """
+        Calculating the pressure LRC for a mixture at a given rho.
+        
+        LRC_p = 2*pi*rho*rho*
+            (dr(1+3/(l_r-3))*(1/rc)^(l_r-3)-
+            da*(1+3/(l_a-3))*(1/rc)^(l_a-3)
+            )
+        The dr and da is averages for a ternary mixture like this:
+        d = d11 x1^2 + d12 2*x1*x2 + d13 2*x1*x3 +
+            d22 x2^2 + d23 2*x2*x3 + 
+            d33 x3^2
+
+        Calling the LRC_p method of the mie class calculates LRC_p
+        for the dr, da given by eps*sig^l_r/a. The prefactors can be
+        extracted and included into rho.
+        """
+        self._check_composition(composition)
+
+        LRC_p_ii = []
+        for pot, xi in zip(self.potentials, composition):
+            LRC_p_ii.append(pot.LRC_p(rho * xi * xi))
+
+        components = len(composition)
+        composition_ij = []
+        for i, xi in enumerate(composition[:-1]):
+            for xj in composition[i:]:
+                composition_ij.append(xi * xj)
+
+        LRC_p_ij = []
+        for potij, xij in zip(self.potentials[components:], composition_ij):
+            LRC_p_ij.append(potij.LRC_p(rho * xij * 2))
+
+        return sum(sum(LRC_p_ii), sum(LRC_p_ij))
+
+    @staticmethod
+    def _check_input(potentials):
+        if not isinstance(potentials, list):
+            raise ValueError("Potentials must be a list of mie instances")
+
+        type_potentials = [isinstance(item, mie) for item in potentials]
+        if not any(type_potentials):
+            raise ValueError("Potentials must be a list of mie instances")
+        return True
+
+    @staticmethod
+    def _check_composition(composition):
+        if not isinstance(composition, list):
+            raise ValueError(
+                "Composition must be a list of mole fractions\
+            summing up to one "
+            )
+        if sum(composition) < 0.999 or sum(composition > 1.001):
+            raise ValueError(
+                "Composition must be a list of mole fractions\
+            summing up to one "
+            )
+
+
 class mie(object):
     def __init__(self, l_r, l_a, eps, sig, rc=1000, shift=False):
         self.R = 8.3144598  # ideal gas constant
@@ -102,10 +172,9 @@ class mie(object):
         """
         This returns the long range correction for the pressure
         of a MIE system, dependent on all of the above parameters
-        for ONE particle in J/mol. 
-        Should usually be multiplied by N.
+        in bar. 
 
-        LRC_en = 2*pi*rho*rho*
+        LRC_p = 2*pi*rho*rho*
                 (eps*sigma^l_r*(1+3/(l_r-3))*(1/rc)^(l_r-3)-
                 eps*sigma^l_a*(1+3/(l_a-3))*(1/rc)^(l_a-3)
                 )
