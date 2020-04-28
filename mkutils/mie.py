@@ -2,44 +2,42 @@ import numpy as np
 
 
 class mie(object):
-    def __init__(l_r, l_a, eps, sig, rc=1000, shift=False):
+    def __init__(self, l_r, l_a, eps, sig, rc=1000, shift=False):
+        self.R = 8.3144598  # ideal gas constant
         self.l_r = l_r
         self.l_a = l_a
         self.eps = eps
         self.sig = sig
         self.rc = rc
         self.shift = shift
-    
+
     def potential(self, r):
-    """
-    Method for the Mie potential at radius r,
-    with sigma, epsilon and l_r = repulsive exponent
-    and l_a = attractive exponent.
+        """
+        Method for the Mie potential at radius r,
+        with sigma, epsilon and l_r = repulsive exponent
+        and l_a = attractive exponent.
 
-    sigma in same unit as r, epsilon in K.
+        sigma in same unit as r, epsilon in K.
 
-    Truncation available with rc 
+        Truncation available with rc 
 
-    MIE = c*eps*((sigma/r)**(l_r) - (sigma/r)**(l_a))
+        MIE = c*eps*((sigma/r)**(l_r) - (sigma/r)**(l_a))
 
-    """
+        """
 
-    if isinstance(r, float) or isinstance(r, int):
-        if r < self.rc:
-            potential = self._mie(self.l_r, self.l_a,
-                                  self.eps, self.sigma, r
-                                  )
-            if self.shift:
-                potential -= self._mie(self.l_r, self.l_a,
-                                       self.eps, self.sigma,
-                                       self.rc
-                                       )
-            return potential
+        if isinstance(r, float) or isinstance(r, int):
+            if r < self.rc:
+                potential = self._mie(self.l_r, self.l_a, self.eps, self.sig, r)
+                if self.shift:
+                    potential -= self._mie(
+                        self.l_r, self.l_a, self.eps, self.sig, self.rc
+                    )
+                return potential
+            else:
+                return 0
         else:
-            return 0
-    else:
-        M = np.asarray([self.potential(ri) for ri in r])
-        return M
+            M = np.asarray([self.potential(ri) for ri in r])
+            return M
 
     def force(self, r):
         """
@@ -54,23 +52,63 @@ class mie(object):
                     )
         c = (l_r/(l_r - l_a))*(l_r/l_a)**(l_a/(l_r-l_a))
         """
-    
-        if isinstance(r, float) or isinstance(r, int)
-            if r < rc:
-                return self.force(self.l_r, self.l_a,
-                                  self.eps, self.sig, r
-                                 )
+
+        if isinstance(r, float) or isinstance(r, int):
+            if r < self.rc:
+                return self._force(self.l_r, self.l_a, self.eps, self.sig, r)
             else:
                 return 0
         else:
             M = np.asarray([self.force(ri) for ri in r])
             return M
-    
+
+    def LRC_en(self, rho):
+        """
+        This returns the long range correction for the energy
+        of a MIE system for one particle in J/mol. 
+        Should usually be multiplied by N.
+        
+        LRC_en = 2*pi*rho(eps*sigma^l_r/(l_r-3)*(1/rc)^(l_r-3)-
+                        eps*sigma^l_a/(l_a-3)*(1/rc)^(l_a-3)
+                        )
+        sigma, rc in nm, rho in 1/nm^3, MW in kg/mol
+        """
+        c = self.prefactor(self.l_r, self.l_a)
+        dr = self.eps * self.sig ** self.l_r
+        da = self.eps * self.sig ** self.l_a
+        mr = c * (1 / (self.l_r - 3)) * self.rc ** (3 - self.l_r)
+        ma = c * (1 / (self.l_a - 3)) * self.rc ** (3 - self.l_a)
+
+        return 2 * np.pi * rho * ((dr * mr) - (da * ma)) * self.R
+
+    def LRC_p(self, rho):
+        """
+        This returns the long range correction for the pressure
+        of a MIE system, dependent on all of the above parameters
+        for ONE particle in J/mol. 
+        Should usually be multiplied by N.
+
+        LRC_en = 2*pi*rho*rho*
+                (eps*sigma^l_r*(1+3/(l_r-3))*(1/rc)^(l_r-3)-
+                eps*sigma^l_a*(1+3/(l_a-3))*(1/rc)^(l_a-3)
+                )
+        conversion factors:
+        R, 10^27, Na^-1, 10^-5
+        sigma, rc in nm, rho in 1/nm^3
+        """
+        factor = (1 / 6.022) * 0.1  # 1-^27/Na and 10^-5 for bar
+        c = self.prefactor(self.l_r, self.l_a)
+        dr = self.eps * self.sig ** self.l_r
+        da = self.eps * self.sig ** self.l_a
+        mr = c * (1 + (3 / (self.l_r - 3))) * self.rc ** (3 - self.l_r)
+        ma = c * (1 + (3 / (self.l_a - 3))) * self.rc ** (3 - self.l_a)
+        return (2 / 3) * np.pi * rho * rho * ((dr * mr) - (da * ma)) * self.R * factor
+
     @staticmethod
     def _mie(l_r, l_a, eps, sig, r):
         c = mie.prefactor(l_r, l_a)
         frac = sig / r
-        return c * eps * (frac**l_r - frac**l_a)
+        return c * eps * (frac ** l_r - frac ** l_a)
 
     @staticmethod
     def _force(l_r, l_a, eps, sig, r):
@@ -124,55 +162,6 @@ def coulomb(qi, qj, r, eps0=1):
     return 16714.6 * qi * qj * (1 / (eps0 * r))
 
 
-def get_C(l_r, l_a):
-    return (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
-
-
-def mie_shift(l_r, l_a, eps, sigma, r, rc=1000):
-    """
-    Function for the shifted Mie potential at radius r,
-    with the shift taken at rc
-    with sigma, epsilon and l_r = repulsive exponent
-    and l_a = attractive exponent.
-    
-    sigma in nm, epsilon in J/K.
-    
-    MIE = c*eps*((sigma/r)**(l_r) - (sigma/r)**(l_a)) - shift
-
-    C = (l_r/(l_r - l_a))*(l_r/l_a)**(l_a/(l_r-l_a))
-    """
-
-    c = (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
-    shift = mie(l_r, l_a, eps, sigma, r=rc, rc=1000)
-    if r < rc:
-        return c * eps * ((sigma / r) ** (l_r) - (sigma / r) ** (l_a)) - shift
-    else:
-        return 0
-
-
-def force(l_r, l_a, eps, sigma, r, rc=1000):
-    """
-    Analytical force of a Mie potential ar r, with
-    with sigma, epsilon and l_r = repulsive epxonent
-    and l_a = attractive exponent.
-    
-    sigma in nm, epsilon in J/K.
-    
-    Force = -c*eps( -1*l_r*sigma**(l_r)/r**(l_r+1) + 
-                       l_a*sigma**(l_a)/r**(l_a+1)
-                  )
-    c = (l_r/(l_r - l_a))*(l_r/l_a)**(l_a/(l_r-l_a))
-    """
-
-    c = (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
-    f_r = -1 * l_r * sigma ** (l_r) / r ** (l_r + 1)
-    f_a = -1 * l_a * sigma ** (l_a) / r ** (l_a + 1)
-    if r < rc:
-        return -1 * c * eps * (f_r - f_a)
-    else:
-        return 0
-
-
 def mie_int(l_r, l_a, eps, sigma, r):
     """
     Evaluation of the indefinite integral of the Mie potential
@@ -205,50 +194,3 @@ def mie_integral(l_r, l_a, eps, sigma, r_lower, r_upper):
         return -1 * diff
     else:
         return diff
-
-
-def LRC_en(l_r, l_a, eps, sigma, rc, rho):
-    """
-    This returns the long range correction for the energy
-    of a MIE system, dependent on all of the above parameters
-    for ONE particle in J/mol. 
-    Should usually be multiplied by N.
-    
-    LRC_en = 2*pi*rho(eps*sigma^l_r/(l_r-3)*(1/rc)^(l_r-3)-
-                      eps*sigma^l_a/(l_a-3)*(1/rc)^(l_a-3)
-                      )
-    sigma, rc in nm, rho in 1/nm^3, MW in kg/mol
-    """
-    R = 8.3144598  # ideal gas constant
-    c = (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
-    dr = eps * sigma ** l_r
-    da = eps * sigma ** l_a
-    mr = c * (1 / (l_r - 3)) * rc ** (3 - l_r)
-    ma = c * (1 / (l_a - 3)) * rc ** (3 - l_a)
-
-    return 2 * np.pi * rho * ((dr * mr) - (da * ma)) * R
-
-
-def LRC_p(l_r, l_a, eps, sigma, rc, rho):
-    """
-    This returns the long range correction for the pressure
-    of a MIE system, dependent on all of the above parameters
-    for ONE particle in J/mol. 
-    Should usually be multiplied by N.
-    
-    LRC_en = 2*pi*rho*rho*
-            (eps*sigma^l_r*(1+3/(l_r-3))*(1/rc)^(l_r-3)-
-             eps*sigma^l_a*(1+3/(l_a-3))*(1/rc)^(l_a-3)
-            )
-    conversion factors:
-    R, 10^27, Na^-1, 10^-5
-    sigma, rc in nm, rho in 1/nm^3
-    """
-    R = 8.3144598  # ideal gas constant
-    factor = (1 / 6.022) * 0.1  # 1-^27/Na and 10^-5 for bar
-    c = (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
-    dr = eps * sigma ** l_r
-    da = eps * sigma ** l_a
-    mr = c * (1 + (3 / (l_r - 3))) * rc ** (3 - l_r)
-    ma = c * (1 + (3 / (l_a - 3))) * rc ** (3 - l_a)
-    return (2 / 3) * np.pi * rho * rho * ((dr * mr) - (da * ma)) * R * factor
