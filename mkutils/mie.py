@@ -38,7 +38,7 @@ class mixture(object):
         components = len(composition)
         composition_ij = []
         for i, xi in enumerate(composition[:-1]):
-            for xj in composition[i:]:
+            for xj in composition[i + 1 :]:
                 composition_ij.append(xi * xj)
 
         LRC_p_ij = []
@@ -64,11 +64,12 @@ class mixture(object):
                 "Composition must be a list of mole fractions\
             summing up to one "
             )
-        if sum(composition) < 0.999 or sum(composition > 1.001):
+        if sum(composition) < 0.999 or sum(composition) > 1.001:
             raise ValueError(
                 "Composition must be a list of mole fractions\
             summing up to one "
             )
+        return True
 
 
 class mie(object):
@@ -82,21 +83,21 @@ class mie(object):
         self.shift = shift
 
     @classmethod
-    def lj(mie, eps, sig, rc=1000, shift=False):
-        return mie(12, 6, eps, sig, rc=rc, shift=shift)
+    def lj(cls, eps, sig, rc=1000, shift=False):
+        return cls(12, 6, eps, sig, rc=rc, shift=shift)
 
     @classmethod
-    def mix(self, mie1, mie2, rule="LB", k=0.0, rc=1000, shift=False):
+    def mix(cls, mie1, mie2, rule="LB", k=0.0, rc=1000, shift=False):
         l_r = [mie1.l_r, mie2.l_r]
         l_a = [mie1.l_a, mie2.l_a]
         eps = [mie1.eps, mie2.eps]
         sig = [mie1.sig, mie2.sig]
 
-        l_r_mix, l_a_mix, eps_mix, sig_mix = self._mix(
+        l_r_mix, l_a_mix, eps_mix, sig_mix = mie._mix(
             eps, sig, l_r=l_r, l_a=l_a, rule=rule, k=k
         )
 
-        return mie(l_r_mix, l_a_mix, eps_mix, sig_mix, rc=rc, shift=shift)
+        return cls(l_r_mix, l_a_mix, eps_mix, sig_mix, rc=rc, shift=shift)
 
     def potential(self, r):
         """
@@ -250,7 +251,7 @@ class mie(object):
         if any(check_arraylike):
             raise TypeError("Parameters must be array-like!")
 
-        if len(sig) != 2 or len(eps) != 2 or l_r != 2 or l_a != 2:
+        if len(sig) != 2 or len(eps) != 2 or len(l_r) != 2 or len(l_a) != 2:
             raise ValueError("You need exactly two values for each item!")
         sig = list(sig)
         eps = list(eps)
