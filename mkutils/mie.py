@@ -15,6 +15,19 @@ class mie(object):
     def lj(mie, eps, sig, rc=1000, shift=False):
         return mie(12, 6, eps, sig, rc=rc, shift=shift)
 
+    @classmethod
+    def mix(self, mie1, mie2, rule="LB", k=0.0, rc=1000, shift=False):
+        l_r = [mie1.l_r, mie2.l_r]
+        l_a = [mie1.l_a, mie2.l_a]
+        eps = [mie1.eps, mie2.eps]
+        sig = [mie1.sig, mie2.sig]
+
+        l_r_mix, l_a_mix, eps_mix, sig_mix = self._mix(
+            eps, sig, l_r=l_r, l_a=l_a, rule=rule, k=k
+        )
+
+        return mie(l_r_mix, l_a_mix, eps_mix, sig_mix, rc=rc, shift=shift)
+
     def potential(self, r):
         """
         Method for the Mie potential at radius r,
@@ -155,29 +168,32 @@ class mie(object):
 
         return c * eps * (int_r + int_a)
 
+    @staticmethod
+    def _mix(eps, sig, l_r=[12, 12], l_a=[6, 6], rule="LB", k=0.0):
+        """
+        Function to calculate combining/mixing rules.
 
-def mix(eps, sigma, rule="LB", k=0.0):
-    """
-    Function to calculate combining/mixing rules.
+        Currently implemented: Lorentz-Berthelot rules (LB)
+        """
+        check_arraylike = [
+            isinstance(item, (int, float, str, dict)) for item in [l_r, l_a, sig, eps]
+        ]
+        if any(check_arraylike):
+            raise TypeError("Parameters must be array-like!")
 
-    Currently implemented: Lorentz-Berthelot rules (LB)
-    """
-    if isinstance(sigma, (int, float, str, dict)) or isinstance(
-        eps, (int, float, str, dict)
-    ):
-        raise TypeError("Sigma and Epsilon must be array-like!")
-
-    if len(sigma) != 2 or len(eps) != 2:
-        raise ValueError("You need exactly two values for sigma and epsilon!")
-    sigma = list(sigma)
-    eps = list(eps)
-    if rule == "LB":
-        return (
-            np.sqrt(eps[0] * eps[1]),
-            np.mean(sigma),
-        )
-    else:
-        raise ValueError("Unknown Combining Rule Specified!")
+        if len(sig) != 2 or len(eps) != 2 or l_r != 2 or l_a != 2:
+            raise ValueError("You need exactly two values for each item!")
+        sig = list(sig)
+        eps = list(eps)
+        if rule == "LB":
+            return (
+                3 + np.sqrt((l_r[0] - 3) * (l_r[1] - 3)),
+                3 + np.sqrt((l_a[0] - 3) * (l_a[1] - 3)),
+                (1 - k) * np.sqrt(eps[0] * eps[1]),
+                np.mean(sig),
+            )
+        else:
+            raise ValueError("Unknown Combining Rule Specified!")
 
 
 def coulomb(qi, qj, r, eps0=1):
