@@ -11,6 +11,10 @@ class mie(object):
         self.rc = rc
         self.shift = shift
 
+    @classmethod
+    def lj(mie, eps, sig, rc=1000, shift=False):
+        return mie(12, 6, eps, sig, rc=rc, shift=shift)
+
     def potential(self, r):
         """
         Method for the Mie potential at radius r,
