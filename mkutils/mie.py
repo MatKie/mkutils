@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class mie(object):
     def __init__(l_r, l_a, eps, sig, rc=1000, shift=False):
         self.l_r = l_r
@@ -9,7 +10,6 @@ class mie(object):
         self.rc = rc
         self.shift = shift
     
-    def _mie():
     def potential(self, r):
     """
     Method for the Mie potential at radius r,
@@ -26,46 +26,62 @@ class mie(object):
 
     if isinstance(r, float) or isinstance(r, int):
         if r < self.rc:
-            c = self.prefactor(self.l_r, self.l_a)
-            frac = self.sigma/r
-            pot = c * self.eps * (frac ** l_r - frac ** l_a)
+            potential = self._mie(self.l_r, self.l_a,
+                                  self.eps, self.sigma, r
+                                  )
             if self.shift:
-                shift = self.potential
+                potential -= self._mie(self.l_r, self.l_a,
+                                       self.eps, self.sigma,
+                                       self.rc
+                                       )
+            return potential
         else:
             return 0
     else:
-        M = np.asarray([mie(l_r, l_a, eps, sigma, ri) for ri in r])
+        M = np.asarray([self.potential(ri) for ri in r])
         return M
+
+    def force(self, r):
+        """
+        Analytical force of a Mie potential ar r, with
+        with sigma, epsilon and l_r = repulsive epxonent
+        and l_a = attractive exponent.
+        
+        sigma in nm, epsilon in J/K.
+        
+        Force = -c*eps( -1*l_r*sigma**(l_r)/r**(l_r+1) + 
+                        l_a*sigma**(l_a)/r**(l_a+1)
+                    )
+        c = (l_r/(l_r - l_a))*(l_r/l_a)**(l_a/(l_r-l_a))
+        """
+    
+        if isinstance(r, float) or isinstance(r, int)
+            if r < rc:
+                return self.force(self.l_r, self.l_a,
+                                  self.eps, self.sig, r
+                                 )
+            else:
+                return 0
+        else:
+            M = np.asarray([self.force(ri) for ri in r])
+            return M
+    
+    @staticmethod
+    def _mie(l_r, l_a, eps, sig, r):
+        c = mie.prefactor(l_r, l_a)
+        frac = sig / r
+        return c * eps * (frac**l_r - frac**l_a)
+
+    @staticmethod
+    def _force(l_r, l_a, eps, sig, r):
+        c = mie.prefactor(l_r, l_a)
+        f_r = -1 * l_r * sig ** (l_r) / r ** (l_r + 1)
+        f_a = -1 * l_a * sig ** (l_a) / r ** (l_a + 1)
+        return -1 * c * eps * (f_r - f_a)
 
     @staticmethod
     def prefactor(l_r, l_a):
         return (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
-
-
-def mie_f(l_r, l_a, eps, sigma, r, rc=1000):
-    """
-    Function for the Mie potential at radius r,
-    with sigma, epsilon and l_r = repulsive exponent
-    and l_a = attractive exponent.
-
-    sigma in same unit as r, epsilon in K.
-
-    Truncation available with rc 
-
-    MIE = c*eps*((sigma/r)**(l_r) - (sigma/r)**(l_a))
-
-    C = (l_r/(l_r - l_a))*(l_r/l_a)**(l_a/(l_r-l_a))
-    """
-    c = (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
-
-    if isinstance(r, float) or isinstance(r, int):
-        if r < rc:
-            return c * eps * ((sigma / r) ** (l_r) - (sigma / r) ** (l_a))
-        else:
-            return 0
-    else:
-        M = np.asarray([mie(l_r, l_a, eps, sigma, ri) for ri in r])
-        return M
 
 
 def mix(eps, sigma, rule="LB", k=0.0):
