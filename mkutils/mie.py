@@ -108,6 +108,24 @@ class mie(object):
         ma = c * (1 + (3 / (self.l_a - 3))) * self.rc ** (3 - self.l_a)
         return (2 / 3) * np.pi * rho * rho * ((dr * mr) - (da * ma)) * self.R * factor
 
+    def mie_integral(self, r_lower, r_upper):
+        """
+        Evaluating the definite integral of 
+        the mie Potential between r_lower and r_upper. 
+
+        One part of the integral:
+        Int = c*eps(((-1*sigma**l_r)/(l_r-1))*r**(-l_r+1) + 
+                ((sigma**l_a)/(l_a-1))*r**(-l_a+1)
+                )
+        
+        c = (l_r/(l_r - l_a))*(l_r/l_a)**(l_a/(l_r-l_a))
+        """
+        diff = self._mie_integral(
+            self.l_r, self.l_a, self.eps, self.sig, r_upper
+        ) - self._mie_integral(self.l_r, self.l_a, self.eps, self.sig, r_lower)
+
+        return diff
+
     @staticmethod
     def _mie(l_r, l_a, eps, sig, r):
         c = mie.prefactor(l_r, l_a)
@@ -124,6 +142,18 @@ class mie(object):
     @staticmethod
     def prefactor(l_r, l_a):
         return (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
+
+    @staticmethod
+    def _mie_integral(l_r, l_a, eps, sig, r):
+        """
+        Evaluation of the indefinite integral of the Mie potential
+        at r.
+        """
+        c = mie.prefactor(l_r, l_a)
+        int_r = ((-1 * sig ** l_r) / (l_r - 1)) * r ** (-l_r + 1)
+        int_a = ((sig ** l_a) / (l_a - 1)) * r ** (-l_a + 1)
+
+        return c * eps * (int_r + int_a)
 
 
 def mix(eps, sigma, rule="LB", k=0.0):
@@ -164,37 +194,3 @@ def coulomb(qi, qj, r, eps0=1):
     U(r_ij) = 1.67146*10^4 * q_i*q_j/(eps_0) * 1/r_ij
     """
     return 16714.6 * qi * qj * (1 / (eps0 * r))
-
-
-def mie_int(l_r, l_a, eps, sigma, r):
-    """
-    Evaluation of the indefinite integral of the Mie potential
-    at r. 
-
-    Int = c*eps(((-1*sigma**l_r)/(l_r-1))*r**(-l_r+1) + 
-                ((sigma**l_a)/(l_a-1))*r**(-l_a+1)
-               )
-    
-    c = (l_r/(l_r - l_a))*(l_r/l_a)**(l_a/(l_r-l_a))
-    
-    """
-    c = (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
-    int_r = ((-1 * sigma ** l_r) / (l_r - 1)) * r ** (-l_r + 1)
-    int_a = ((sigma ** l_a) / (l_a - 1)) * r ** (-l_a + 1)
-    return c * eps * (int_r + int_a)
-
-
-def mie_integral(l_r, l_a, eps, sigma, r_lower, r_upper):
-    """
-    wrapper function evaluating the definite integral of 
-    the mie Potential between r_lower and r_upper. 
-    Automatically switches the boundaries if r_lower > r_upper
-    """
-    diff = mie_int(l_r, l_a, eps, sigma, r_upper) - mie_int(
-        l_r, l_a, eps, sigma, r_lower
-    )
-
-    if r_lower > r_upper:
-        return -1 * diff
-    else:
-        return diff
