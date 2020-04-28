@@ -33,7 +33,7 @@ class mixture(object):
 
         LRC_p_ii = []
         for pot, xi in zip(self.potentials, composition):
-            LRC_p_ii.append(pot.LRC_p(rho * xi * xi))
+            LRC_p_ii.append(pot.LRC_p(rho * xi))
 
         components = len(composition)
         composition_ij = []
@@ -43,9 +43,9 @@ class mixture(object):
 
         LRC_p_ij = []
         for potij, xij in zip(self.potentials[components:], composition_ij):
-            LRC_p_ij.append(potij.LRC_p(rho * xij * 2))
+            LRC_p_ij.append(potij.LRC_p(rho * np.sqrt(xij * 2)))
 
-        return sum(sum(LRC_p_ii), sum(LRC_p_ij))
+        return sum([sum(LRC_p_ii), sum(LRC_p_ij)])
 
     @staticmethod
     def _check_input(potentials):
@@ -87,11 +87,17 @@ class mie(object):
         return cls(12, 6, eps, sig, rc=rc, shift=shift)
 
     @classmethod
-    def mix(cls, mie1, mie2, rule="LB", k=0.0, rc=1000, shift=False):
+    def mix(cls, mie1, mie2, rule="LB", k=0.0, rc=None, shift=False):
         l_r = [mie1.l_r, mie2.l_r]
         l_a = [mie1.l_a, mie2.l_a]
         eps = [mie1.eps, mie2.eps]
         sig = [mie1.sig, mie2.sig]
+        
+        if rc is None:
+            rc = mie1.rc
+            if mie1.rc != mie2.rc:
+                warnings.warn("Potentials have different cutoffs, taking rc\
+                from first potential")
 
         l_r_mix, l_a_mix, eps_mix, sig_mix = mie._mix(
             eps, sig, l_r=l_r, l_a=l_a, rule=rule, k=k

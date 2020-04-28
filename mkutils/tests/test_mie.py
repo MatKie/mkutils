@@ -25,9 +25,10 @@ def test_mix_single():
     sys2 = mie(8, 6, eps, sigma, rc=2)
     m12 = mie.mix(sys1, sys2)
     assert m12.eps == approx(eps, 0.0001)
-    # assert m12.sig == approx(sigma, 0)
-    # assert m12.l_r == approx(8, 0)
-    # assert m12.l_a == approx(6, 0)
+    assert m12.sig == approx(sigma, 0)
+    assert m12.l_r == approx(8, 0)
+    assert m12.l_a == approx(6, 0)
+    assert m12.rc == approx(2, 0)
 
 
 def test_pure_mixture():
@@ -35,7 +36,6 @@ def test_pure_mixture():
     sys2 = mie(8, 6, eps, sigma, rc=2)
     sys3 = mie(8, 6, eps, sigma, rc=2)
 
-    # Untested as of now...
     m12 = mie.mix(sys1, sys2)
     m13 = mie.mix(sys1, sys3)
     m23 = mie.mix(sys2, sys3)
@@ -44,4 +44,4 @@ def test_pure_mixture():
     LRC_p = mix.LRC_p(CGW2_dens, [0.6, 0.3, 0.1])
     LRC_control = sys1.LRC_p(CGW2_dens)
 
-    assert LRC_p == LRC_control
+    assert LRC_p == approx(LRC_control, 1e-4)
