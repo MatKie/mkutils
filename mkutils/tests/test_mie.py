@@ -45,3 +45,29 @@ def test_pure_mixture():
     LRC_control = sys1.LRC_p(CGW2_dens)
 
     assert LRC_p == approx(LRC_control, 1e-4)
+
+
+def test_NaF_mixture():
+    # For future reference the energy correction
+    # on this is: -976.066 for 6783 water and
+    # 123 sodium and chloride ions resp.
+    rc = 1.4
+    # Spc(o) 78.249K, 0.3166nm
+    sys1 = mie.lj(78.249, 0.3166, rc=rc)
+    # Na 38.487K, 0.2450nm
+    sys2 = mie.lj(38.487, 0.245, rc=rc)
+    # F 120.272K, 0.3700nm
+    sys3 = mie.lj(120.272, 0.37, rc=rc)
+
+    rule = "geom"
+    m12 = mie.mix(sys1, sys2, k=0.2504612547, rule=rule)
+    assert m12.eps == approx(41.13, 0.01)
+    m13 = mie.mix(sys1, sys3, rule=rule)
+    m23 = mie.mix(sys2, sys3, rule=rule)
+
+    mix = mixture([sys1, sys2, sys3, m12, m13, m23])
+    composition = [0.965002134, 0.01749893299, 0.01749893299]
+    dens = 7029.0 / (5.88702 ** 3)
+    LRC_p = mix.LRC_p(dens, composition)
+
+    assert LRC_p == approx(-79.4747, 0.01)

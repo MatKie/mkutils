@@ -92,12 +92,14 @@ class mie(object):
         l_a = [mie1.l_a, mie2.l_a]
         eps = [mie1.eps, mie2.eps]
         sig = [mie1.sig, mie2.sig]
-        
+
         if rc is None:
             rc = mie1.rc
             if mie1.rc != mie2.rc:
-                warnings.warn("Potentials have different cutoffs, taking rc\
-                from first potential")
+                warnings.warn(
+                    "Potentials have different cutoffs, taking rc\
+                from first potential"
+                )
 
         l_r_mix, l_a_mix, eps_mix, sig_mix = mie._mix(
             eps, sig, l_r=l_r, l_a=l_a, rule=rule, k=k
@@ -249,7 +251,7 @@ class mie(object):
         """
         Function to calculate combining/mixing rules.
 
-        Currently implemented: Lorentz-Berthelot rules (LB)
+        Currently implemented: Lorentz-Berthelot rules (LB) and geometric
         """
         check_arraylike = [
             isinstance(item, (int, float, str, dict)) for item in [l_r, l_a, sig, eps]
@@ -267,6 +269,13 @@ class mie(object):
                 3 + np.sqrt((l_a[0] - 3) * (l_a[1] - 3)),
                 (1 - k) * np.sqrt(eps[0] * eps[1]),
                 np.mean(sig),
+            )
+        elif rule == "geom":
+            return (
+                3 + np.sqrt((l_r[0] - 3) * (l_r[1] - 3)),
+                3 + np.sqrt((l_a[0] - 3) * (l_a[1] - 3)),
+                (1 - k) * np.sqrt(eps[0] * eps[1]),
+                np.sqrt(sig[0] * sig[1]),
             )
         else:
             raise ValueError("Unknown Combining Rule Specified!")
