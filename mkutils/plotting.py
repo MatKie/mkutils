@@ -499,6 +499,7 @@ class ChunkData:
             )
         else:
             combined_quantity = copy.deepcopy(self.get_data(data[0], tmin, tmax))
+
             data = data[1:]
 
         method_dict = {
@@ -519,7 +520,7 @@ class ChunkData:
 
         return combined_quantity
 
-    def _get_index(self, prop):
+    def _get_pos(self, prop):
         return self.props.index(prop)
 
     def _get_tminmax(self, tmin, tmax):
@@ -545,7 +546,7 @@ class ChunkData:
     def get_data(self, data, tmin, tmax):
         if isinstance(data, str):
             self._get_data(tmin, tmax)  # This sets self.data
-            index = self._get_index(data)
+            index = self._get_pos(data)
             ydata = self.data[:, :, index]
         elif isinstance(data, np.ndarray):
             ydata = data
