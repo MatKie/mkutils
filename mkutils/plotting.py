@@ -377,13 +377,17 @@ class PlotGromacs(PlotSims):
 
 
 class ChunkData:
-    def __init__(self, infile):
+    def __init__(self, infile, trim_data=False):
         self.infile = infile
+        self.trim_data = trim_data
         self.binsize_varies = False
         self.x, self.t, self.chunks, self.props = self._get_xtp()
         self.data = None
         self.tmin = None
         self.tmax = None
+        self.xmin = None
+        self.xmax = None
+        self.dx = None
 
     def show_props(self):
         for item in self.props:
@@ -426,16 +430,21 @@ class ChunkData:
             chunks = np.array(chunks)
 
             self._chunksize_varies(chunks)
-            if self.binsize_varies == True:
+            if self.binsize_varies is True:
                 x = np.arange(len(chunks))
+
+            self.dx = x[1] - x[0]
 
         return x, t, chunks, properties
 
     def _chunksize_varies(self, chunks):
+        # Checking if all the chunks o(ver time) are of the same size.
+        # np.any returns true if any value is non-zero in array.
         self.binsize_varies = np.any(chunks - chunks[0] * np.ones(np.shape(chunks)))
 
     def _get_data(self, tmin, tmax):
         if (
+            # Do not read again if we already read that timeframe
             tmin == self.tmin
             and tmax == self.tmax
             and isinstance(self.data, np.ndarray)
@@ -470,6 +479,14 @@ class ChunkData:
                     usecols=usecols,
                     max_rows=chunks,
                 )
+        if self.trim_data is True:
+            if len(self.x) > len(data[0, :-1, 0]):
+                self.x = self.x[:-1]
+            self.dx = self.x[1] - self.x[0]
+            self.xmin = self.x[0] - self.dx / 2.0
+            self.xmax = self.x[-1] + self.dx / 2.0
+            data = data[:, :-1, :]
+
         self.tmin = tmin
         self.tmax = tmax
         self.data = data
@@ -569,7 +586,6 @@ class ChunkData:
         indexE = int(np.round(xE / discretisation))
         if bound_cross:
             ydata = np.concatenate((ydata[:, :index0], ydata[:, indexE:]), axis=1)
-
         else:
             ydata = ydata[:, index0:indexE]
         mean, error = self._get_stats(ydata)
