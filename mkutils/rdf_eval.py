@@ -108,7 +108,7 @@ class RDFEval:
 
         return fac * rho * gr
 
-    def print_results(self):
+    def print_results(self, second_coord=False):
         """
         Print results for all minima/maxima coordinatin numbers.
 
@@ -119,9 +119,10 @@ class RDFEval:
         print("Rmax-1st:   {:.4f} nm".format(self.bins[self.max0] / 10.0))
         print("Rmin-1st:   {:.4f} nm".format(self.bins[self.min0] / 10.0))
         print("Coord#-1st: {:.4f}\n".format(self.n0))
-        print("Rmax-2nd:   {:.4f} nm".format(self.bins[self.max1] / 10.0))
-        print("Rmin-2nd:   {:.4f} nm".format(self.bins[self.min1] / 10.0))
-        print("Coord#-2nd: {:.4f}\n".format(self.n1))
+        if second_coord:
+            print("Rmax-2nd:   {:.4f} nm".format(self.bins[self.max1] / 10.0))
+            print("Rmin-2nd:   {:.4f} nm".format(self.bins[self.min1] / 10.0))
+            print("Coord#-2nd: {:.4f}\n".format(self.n1))
 
     def plot(self, ax, label="", color="k", lw=1, ls="-", alpha=1):
         """
@@ -139,14 +140,14 @@ class RDFEval:
             self.bins[: self.min0 + 1],
             self.rdf[: self.min0 + 1],
             np.zeros(self.rdf[: self.min0 + 1].shape),
-            color="k",
-            alpha=0.7 * alpha,
+            color=color,
+            alpha=0.6 * alpha,
         )
         ax.fill_between(
             self.bins[self.min0 : self.min1 + 1],
             self.rdf[self.min0 : self.min1 + 1],
             np.zeros(self.rdf[self.min0 : self.min1 + 1].shape),
-            color="k",
+            color=color,
             alpha=0.4 * alpha,
         )
 
