@@ -8,7 +8,7 @@ class EvalReplica(PlotSims):
     Class designed to evaluate replicas of the same simulation.
     """
 
-    def __init__(self, path, basename, filename, simtype="LAMMPS"):
+    def __init__(self, path, basename, filename, simtype="LAMMPS", trim_data=False):
         """
         simsuite is either LAMMPS or GROMACS or CHUNKS
         
@@ -20,6 +20,7 @@ class EvalReplica(PlotSims):
         self.filename = filename
         self.replica_dirs = self._collect_replica_dirs()
         self.replicas = self._collect_replicas()
+        self.trim_data = trim_data  # For profiles...
 
         # What are we evaluating?
         simsuites = {"LAMMPS": PlotLAMMPS, "GROMACS": PlotGromacs, "CHUNKS": ChunkData}
@@ -79,6 +80,9 @@ class EvalReplica(PlotSims):
 
     def _collect_replica_sims(self):
         replica_sims = [self.simsuite(replica) for replica in self.replicas]
+        if isinstance(replica_sims[0], ChunkData):
+            for replica_sim in replica_sims:
+                replica_sim.trim_data = self.trim_data
         # This would be a good place to implement keyword args like timestep
 
         return replica_sims
@@ -96,7 +100,7 @@ class EvalReplica(PlotSims):
                 absolute_values=absolute_values,
             )
 
-    def create_combined_profile(
+    def combine_quantity(
         self, props, tmin=None, tmax=None, method="add", factor=None, average=True
     ):
 

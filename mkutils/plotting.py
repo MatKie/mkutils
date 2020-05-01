@@ -482,10 +482,10 @@ class ChunkData:
         if self.trim_data is True:
             if len(self.x) > len(data[0, :-1, 0]):
                 self.x = self.x[:-1]
-            self.dx = self.x[1] - self.x[0]
-            self.xmin = self.x[0] - self.dx / 2.0
-            self.xmax = self.x[-1] + self.dx / 2.0
             data = data[:, :-1, :]
+        self.dx = self.x[1] - self.x[0]
+        self.xmin = self.x[0] - self.dx / 2.0
+        self.xmax = self.x[-1] + self.dx / 2.0
 
         self.tmin = tmin
         self.tmax = tmax
