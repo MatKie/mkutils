@@ -123,29 +123,31 @@ class RDFEval:
         print("Rmin-2nd:   {:.4f} nm".format(self.bins[self.min1] / 10.0))
         print("Coord#-2nd: {:.4f}\n".format(self.n1))
 
-    def plot(self, ax):
+    def plot(self, ax, label="", color="k", lw=1, ls="-", alpha=1):
         """
         Plot with graphical representation of integral
         """
-        ax.plot(self.bins, self.rdf, lw=1)
+        ax.plot(
+            self.bins, self.rdf, lw=lw, ls=ls, color=color, label=label, alpha=alpha
+        )
         ylim = ax.get_ylim()
-        ax.vlines(self.bins[self.max0], *ylim, linestyle="--")
-        ax.vlines(self.bins[self.min0], *ylim, linestyle="--")
-        ax.vlines(self.bins[self.max1], *ylim, linestyle="--")
-        ax.vlines(self.bins[self.min1], *ylim, linestyle="--")
+        ax.vlines(self.bins[self.max0], *ylim, linestyle="--", alpha=alpha)
+        ax.vlines(self.bins[self.min0], *ylim, linestyle="--", alpha=alpha)
+        ax.vlines(self.bins[self.max1], *ylim, linestyle="--", alpha=alpha)
+        ax.vlines(self.bins[self.min1], *ylim, linestyle="--", alpha=alpha)
         ax.fill_between(
             self.bins[: self.min0 + 1],
             self.rdf[: self.min0 + 1],
             np.zeros(self.rdf[: self.min0 + 1].shape),
             color="k",
-            alpha=0.7,
+            alpha=0.7 * alpha,
         )
         ax.fill_between(
             self.bins[self.min0 : self.min1 + 1],
             self.rdf[self.min0 : self.min1 + 1],
             np.zeros(self.rdf[self.min0 : self.min1 + 1].shape),
             color="k",
-            alpha=0.4,
+            alpha=0.4 * alpha,
         )
 
         ax.set_ylabel("g(r) / -")
