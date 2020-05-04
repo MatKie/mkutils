@@ -196,7 +196,7 @@ class EvalReplica(PlotSims):
         if len(stats) < 1.5:
             return stats[0][0], stats[0][1], stats[0][2], stats[0][3]
         else:
-            return (
+            return (  # This could be adopted to only handle three stats
                 [sublist[0] for sublist in stats],
                 [sublist[1] for sublist in stats],
                 [sublist[2] for sublist in stats],
