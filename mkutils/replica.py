@@ -38,6 +38,10 @@ class EvalReplica(PlotSims):
         self.combined_properties = []
 
     def _collect_replica_dirs(self):
+        """
+        Collect als directories in path and checks if basename is in there
+        """
+
         # Get all directories in base dir
         base_dir_dirs = [
             os.path.join(self.path, di)
@@ -54,6 +58,9 @@ class EvalReplica(PlotSims):
         return replica_dirs
 
     def _collect_replicas(self):
+        """
+        Goes in all the replica dirs and collects the filepaths
+        """
         replicas = []
         for replica_dir in self.replica_dirs:
             filename = [
@@ -79,6 +86,9 @@ class EvalReplica(PlotSims):
         return replicas
 
     def _collect_replica_sims(self):
+        """
+        Inititialise objects according to the type of data
+        """
         replica_sims = [self.simsuite(replica) for replica in self.replicas]
         if isinstance(replica_sims[0], ChunkData):
             for replica_sim in replica_sims:

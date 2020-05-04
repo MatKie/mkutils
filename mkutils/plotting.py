@@ -225,6 +225,26 @@ class PlotSims:
     def create_combined_property(
         self, props, name, average=True, difference=False, absolute_values=False
     ):
+        """
+        This method creates combined properties from input data.
+
+        Inputs:
+        -------
+            props (list, tuple) : name of properties as in input file
+            name (str) : Name of created property
+            average (bool): wether or not to average the quantity at 
+                            timestep
+            difference (bool): Substracts the data of second prop from
+                               second prop
+            absolute_value (bool) : Takes absolute values of all involved
+                                    properties
+
+        output:
+        -------
+            None, append property and values to self.combined_properties and
+            self.combined_properties_data
+        """
+
         if not isinstance(props, (list, tuple)):
             raise ValueError("props must be list or tuple")
 
@@ -515,8 +535,8 @@ class ChunkData:
                 (len(self.data[:, 0, 0]), len(self.data[0, :, 0]))
             )
         else:
+            # For division and subtraction initialis with first element
             combined_quantity = copy.deepcopy(self.get_data(data[0], tmin, tmax))
-
             data = data[1:]
 
         method_dict = {
