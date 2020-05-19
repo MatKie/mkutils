@@ -2,7 +2,7 @@ import numpy as np
 from .plot_sims import PlotSims
 from .plot_gromacs import PlotGromacs
 from .plot_lammps import PlotLAMMPS
-from .chunk_data import ChunkDatas
+from .chunk_data import ChunkData
 import os
 
 
@@ -150,6 +150,7 @@ class EvalReplica(PlotSims):
     def _replica_combine_data(self, pos, bounds=None):
         """
         This method returns the x,y of a combined trajcetory excluding equil.
+        Specifically it makes the data more or less one trajectory
         """
 
         x0 = 0.0
