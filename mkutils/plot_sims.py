@@ -1,8 +1,5 @@
 import matplotlib.pyplot as plt
-import matplotlib
 import numpy as np
-import warnings
-import copy
 
 
 class PlotSims:
@@ -16,8 +13,11 @@ class PlotSims:
     def get_properties(self):
         return self.properties + self.combined_properties
 
-    def _get_data(self):
-        pass
+    def _get_data(self, pos, bounds=None):
+        return [0], [0]
+
+    def _get_unit(self, pos):
+        return ""
 
     def show_properties(self):
         for prop in self.properties:
@@ -29,7 +29,8 @@ class PlotSims:
         if prop in self.properties:
             return self.properties.index(prop) + 1
         elif prop in self.combined_properties:
-            ind = self.combined_properties.index(prop) + len(self.properties) + 1
+            ind = self.combined_properties.index(prop) + len(self.properties)
+            +1
             return ind
         else:
             raise ValueError("Property not available")
@@ -46,7 +47,7 @@ class PlotSims:
         label=None,
     ):
         """
-        Plot the block averaged timeseries. 
+        Plot the block averaged timeseries.
         """
         pos = self._get_pos(prop)
 
@@ -174,7 +175,6 @@ class PlotSims:
         for prop in props:
             pos = self._get_pos(prop)
             x, y = self._get_data(pos, bounds=bounds)
-            tlist = [prop]
             tstats = self._get_stats(x, y, blocks=blocks, bounds=bounds)
             stats.append([prop] + tstats)
 
@@ -245,7 +245,8 @@ class PlotSims:
             datasets[i, :] = y
 
         if average is True:
-            # axis=0 sums over columns, averaging the properties at each timestep
+            # axis=0 sums over columns, averaging the properties at each
+            # timestep
             res = np.average(datasets, axis=0)
         elif difference is True:
             res = np.subtract(datasets[0, :], datasets[1, :])

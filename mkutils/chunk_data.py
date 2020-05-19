@@ -128,9 +128,9 @@ class ChunkData:
         return average
 
     def combine_quantity(
-        self, data, tmin=None, tmax=None, method="add", factor=None, average=True
+        self, data, bounds=(None, None), method="add", factor=None, average=True
     ):
-
+        tmin, tmax = *bounds
         tmin, tmax = self._get_tminmax(tmin, tmax)
         self._get_data(tmin, tmax)
 
