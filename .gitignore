@@ -10,3 +10,5 @@ settings.json
 mkutils.egg-info/requires.txt
 mkutils.egg-info/SOURCES.txt
 mkutils.egg-info/top_level.txt
+.DS_Store
+.vscode/launch.json
