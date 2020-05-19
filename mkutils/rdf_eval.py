@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 
 class RDFEval:
@@ -17,6 +18,7 @@ class RDFEval:
         self.min1 = None
         self.n0 = None  # coordination number
         self.n1 = None
+        self.kbi = None
         self.rho = self._calc_rho()
         self.slack = slack  # Angstrom for LAMMPS
 
@@ -31,6 +33,8 @@ class RDFEval:
         start = self.obj.start
         stop = self.obj.stop
         atoms = self.obj.g2.n_residues
+        if atoms == 1:
+            atoms = self.obj.g2.n_atoms
 
         # Averaging volume
         V = 0.0
@@ -90,6 +94,19 @@ class RDFEval:
         self._get_r0r1()
         self.n0 = self._integrate(0, self.min0)
         self.n1 = self._integrate(self.min0, self.min1)
+
+    def get_kbi(self):
+        x2 = np.multiply(self.bins, self.bins)
+        rdfm1 = copy.deepcopy(self.rdf)
+        rdfm1 -= 1
+        rdfm1x2 = np.multiply(rdfm1, x2)
+
+        integral = np.trapz(rdfm1x2, self.bins)
+
+        fac = 4.0 * np.pi
+        rho = self.rho
+        self.kbi = fac * rho * integral
+        return self.kbi
 
     def _integrate(self, lower_bound, upper_bound):
         x2 = np.multiply(
