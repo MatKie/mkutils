@@ -1,5 +1,8 @@
 import numpy as np
-from mkutils.plotting import PlotSims, PlotGromacs, PlotLAMMPS, ChunkData
+from .plot_sims import PlotSims
+from .plot_gromacs import PlotGromacs
+from .plot_lammps import PlotLAMMPS
+from .chunk_data import ChunkDatas
 import os
 
 
