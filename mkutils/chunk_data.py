@@ -4,7 +4,7 @@ import copy
 
 class ChunkData:
     def __init__(self, infile, trim_data=False):
-        '''
+        """
         Class designed to evaluate spatial profiles in LAMMPS data.
 
         Parameters
@@ -15,7 +15,7 @@ class ChunkData:
             Sometimes the last bin in a profile file is to big for the 
             box -- this option excluded the last bin from evaluation, by
             default False.
-        '''
+        """
         self.infile = infile
         self.trim_data = trim_data
         self.binsize_varies = False
@@ -29,14 +29,14 @@ class ChunkData:
         self.combined_properties_data = []
 
     def get_properties(self):
-        '''
+        """
         See which properties are in the profile in
 
         Returns
         -------
         list of str
             list of names of properties
-        '''
+        """
         return self.props
 
     def _get_xtp(self):
@@ -154,8 +154,17 @@ class ChunkData:
         return average
 
     def create_combined_property(
-        self, data, name, bounds=(None, None), method="add", factor=None, average=True
+        self,
+        data,
+        name,
+        bounds=(None, None),
+        method="add",
+        factor=None,
+        average=True,
+        *args,
+        **kwargs
     ):
+        self._set_data(bounds)
 
         if method == "add":
             combined_quantity = np.zeros(
@@ -205,9 +214,9 @@ class ChunkData:
             if tmin is None and tmax is not None:
                 tmin = self.t_full[0]
                 if tmax > self.t_full[-1]:
-                    tmax = self.t[-1]
+                    tmax = self.t_full[-1]
         else:
-            tmin, tmax = self.t[0], self.t[-1]
+            tmin, tmax = self.t_full[0], self.t_full[-1]
 
         return tmin, tmax
 
