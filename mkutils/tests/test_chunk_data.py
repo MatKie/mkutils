@@ -2,48 +2,94 @@ from mkutils import ChunkData
 from mkutils import save_to_file
 from mkutils import create_fig
 import os
+import pytest
 
 os.chdir("/Users/matthias/CODE/mkutils/mkutils/tests")
 solute = ChunkData("chunk_replica_testfiles/REPLICA1/solute_nvt.prof", trim_data=True)
-sys = ChunkData("chunk_replica_testfiles/REPLICA1/solvent_nvt.prof", trim_data=True)
+solvent = ChunkData("chunk_replica_testfiles/REPLICA1/solvent_nvt.prof", trim_data=True)
+bounds = (10000, 1000000)
 
 
-print(sys.get_stats("density/number", xbounds=(0.0, 0.1), bounds=(10000, 1000000)))
-print(sys.get_stats("density/number", xbounds=(0.1, -0.1), bounds=(10000, 1000000)))
-print(sys.get_stats("density/number", xbounds=(0.4, 0.6), bounds=(10000, 1000000)))
+def test_get_stats(sys, xbounds, bounds):
+    ret = sys.get_stats("density/number", xbounds=xbounds, bounds=bounds)
+    print(ret)
 
-sys.create_combined_property(
-    ["density/number"],
-    "density/weight",
-    bounds=(10000, 1000000),
-    method="multiply",
-    average=False,
-    factor=0.018015 * 10 ** 7 / 6.022,
-)
 
-print(sys.get_stats("density/weight", xbounds=(0.0, 0.1), bounds=(10000, 1000000)))
+test_get_stats(solvent, (0, 0.1), bounds)
+test_get_stats(solvent, (0.1, -0.1), bounds)
+test_get_stats(solvent, (0.4, 0.6), bounds)
 
-print(sys.get_stats("density/weight", xbounds=(0.1, -0.1), bounds=(10000, 1000000)))
 
-solute.create_combined_property(
-    ["density/number"],
-    "density/weight",
-    bounds=(10000, 1000000),
-    method="multiply",
-    average=False,
-    factor=0.05844 / 2 * 10 ** 7 / 6.022,
-)
+def test_create_combined_property(sys, method, average, name):
+    sys.create_combined_property(
+        ["density/number", "Ncount"],
+        name,
+        bounds=(10000, 100000),
+        method=method,
+        average=average,
+        factor=0.018015 * 10 ** 7 / 6.022,
+    )
+    print(name)
 
-data = solute.get_data("density/weight", bounds=(10000, 1000000))
 
-sys.create_combined_property(
-    [data, "density/weight"],
-    "density/ratio",
-    bounds=(10000, 1000000),
-    method="div",
-    factor=None,
-    average=False,
-)
+test_create_combined_property(solvent, "add", False, "1")
+test_create_combined_property(solvent, "add", True, "2")
+test_create_combined_property(solvent, "sub", False, "3")
+test_create_combined_property(solvent, "sub", True, "4")
+test_create_combined_property(solvent, "mul", False, "5")
+test_create_combined_property(solvent, "mul", True, "6")
+test_create_combined_property(solvent, "div", False, "7")
+test_create_combined_property(solvent, "div", True, "8")
 
-print(sys.get_stats("density/ratio", xbounds=(0.1, -0.1), bounds=(10000, 1000000)))
-print(sys.get_stats("density/ratio", xbounds=(0.4, 0.6), bounds=(10000, 1000000)))
+
+def molality(solu, solv, bounds):
+    solv.create_combined_property(
+        ["density/number"],
+        "density/weight",
+        bounds=bounds,
+        method="multiply",
+        average=False,
+        factor=0.018015 * 10 ** 7 / 6.022,
+    )
+
+    rho_solv = solv.get_data("density/weight", bounds=bounds)
+
+    solu.create_combined_property(
+        ["density/number", rho_solv],
+        "molality",
+        bounds=bounds,
+        method="div",
+        factor=0.5 * 10 ** 7 / 6.022,
+        average=False,
+    )
+
+    mol1 = solu.get_stats("molality", xbounds=(0.4, 0.6), bounds=bounds)
+
+    solv.create_combined_property(
+        ["density/number"],
+        "density/weight2",
+        bounds=bounds,
+        method="multiply",
+        average=False,
+        factor=0.018015,
+    )
+
+    rho_solv = solv.get_data("density/weight2", bounds=bounds)
+
+    solu.create_combined_property(
+        ["density/number", rho_solv],
+        "molality2",
+        bounds=bounds,
+        method="div",
+        factor=0.5,
+        average=False,
+    )
+
+    mol2 = solu.get_stats("molality2", xbounds=(0.4, 0.6), bounds=bounds)
+
+    print(mol1)
+    print(mol2)
+    assert mol1 == pytest.approx(mol2, 1e-2)
+
+
+molality(solute, solvent, bounds)

@@ -4,6 +4,18 @@ import copy
 
 class ChunkData:
     def __init__(self, infile, trim_data=False):
+        '''
+        Class designed to evaluate spatial profiles in LAMMPS data.
+
+        Parameters
+        ----------
+        infile : str
+            path to the file containing the LAMMPS profile data
+        trim_data : bool, optional
+            Sometimes the last bin in a profile file is to big for the 
+            box -- this option excluded the last bin from evaluation, by
+            default False.
+        '''
         self.infile = infile
         self.trim_data = trim_data
         self.binsize_varies = False
@@ -17,6 +29,14 @@ class ChunkData:
         self.combined_properties_data = []
 
     def get_properties(self):
+        '''
+        See which properties are in the profile in
+
+        Returns
+        -------
+        list of str
+            list of names of properties
+        '''
         return self.props
 
     def _get_xtp(self):
