@@ -205,7 +205,14 @@ class PlotSims:
         # Routine to write shizzle
 
     def create_combined_property(
-        self, props, name, average=True, difference=False, absolute_values=False
+        self,
+        props,
+        name,
+        average=True,
+        difference=False,
+        absolute_values=False,
+        *args,
+        **kwargs
     ):
         """
         This method creates combined properties from input data.

@@ -101,7 +101,13 @@ class EvalReplica(PlotSims):
         return replica_sims
 
     def create_combined_property(
-        self, props, name, average=True, difference=False, absolute_values=False
+        self,
+        props,
+        name,
+        average=True,
+        difference=False,
+        absolute_values=False,
+        bounds=(None, None),
     ):
         self.combined_properties.append(name)
         for replica_sim in self.replica_sims:
@@ -111,6 +117,7 @@ class EvalReplica(PlotSims):
                 average=average,
                 difference=difference,
                 absolute_values=absolute_values,
+                bounds=bounds,
             )
 
     def combine_quantity(
