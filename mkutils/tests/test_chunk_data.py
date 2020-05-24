@@ -10,8 +10,8 @@ solvent = ChunkData("chunk_replica_testfiles/REPLICA1/solvent_nvt.prof", trim_da
 bounds = (10000, 1000000)
 
 
-def test_get_stats(sys, xbounds, bounds):
-    ret = sys.get_stats("density/number", xbounds=xbounds, bounds=bounds)
+def test_get_stats(sys, xbounds, bounds, prop="density/number"):
+    ret = sys.get_stats(prop, xbounds=xbounds, bounds=bounds)
     print(ret)
 
 
@@ -42,7 +42,7 @@ test_create_combined_property(solvent, "div", False, "7")
 test_create_combined_property(solvent, "div", True, "8")
 
 
-def molality(solu, solv, bounds):
+def test_molality(solu, solv, bounds):
     solv.create_combined_property(
         ["density/number"],
         "density/weight",
@@ -89,7 +89,28 @@ def molality(solu, solv, bounds):
 
     print(mol1)
     print(mol2)
-    assert mol1 == pytest.approx(mol2, 1e-2)
+    assert mol1[1] == pytest.approx(mol2[1], 1e-2)
 
 
-molality(solute, solvent, bounds)
+test_molality(solute, solvent, bounds)
+
+
+def test_get_stats2(solv, bounds, xbounds=(0.1, -0.1)):
+    solv.create_combined_property(
+        ["density/number"],
+        "density/weight",
+        bounds=bounds,
+        method="multiply",
+        average=False,
+        factor=0.018015 * 10 ** 7 / 6.022,
+    )
+
+    rho_solv = solv.get_data("density/weight", bounds=bounds)
+    print(solv.get_stats(bounds=bounds, xbounds=xbounds))
+    print(solv.get_stats(props="density/weight", bounds=bounds, xbounds=xbounds))
+    tupl_data = solv.get_data("density/weight", bounds=bounds)
+    print(solv.get_stats(props=tupl_data, bounds=bounds, xbounds=xbounds))
+    print(solv.get_stats(props=tupl_data[1], bounds=bounds, xbounds=xbounds))
+
+
+test_get_stats2(solvent, bounds)

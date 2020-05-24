@@ -256,14 +256,14 @@ class ChunkData:
             t, ydata = data
         elif isinstance(data, np.ndarray):
             ydata = data
-            t = np.arange(len(data[0]))
+            t = np.arange(np.size(data, 0))  # nr of rows
         else:
             raise TypeError("Data must either be at sring or numpy array")
 
         return t, ydata
         # return copy.deepcopy(ydata)
 
-    def get_stats(self, data, xbounds=(0, 1), bounds=(None, None)):
+    def get_stats_depr(self, data, xbounds=(0, 1), bounds=(None, None)):
         x0, xE = xbounds
         t, ydata = self._get_data(data, bounds)
         discretisation = 1.0 / len(self.x)
@@ -280,6 +280,47 @@ class ChunkData:
             ydata = ydata[:, index0:indexE]
         mean, error = self._get_stats(ydata)
         return mean, error
+
+    def get_stats(self, props=True, xbounds=(0, 1), bounds=(None, None), blocks=10):
+        x0, xE = xbounds
+        discretisation = 1.0 / len(self.x)
+        bound_cross = False
+        if xE < 0:
+            xE = 1 + xE
+            bound_cross = True
+        index0 = int(np.round(x0 / discretisation))
+        indexE = int(np.round(xE / discretisation))
+
+        stats = []  # prop, avg, err, drift
+        if props is True:
+            props = self.props
+        elif isinstance(props, (str, tuple, np.ndarray)):
+            props = [props]
+        else:
+            raise ValueError(
+                "props must be a string, list, tuple of numpy arrays or True"
+            )
+
+        for data in props:
+            t, ydata = self._get_data(data, bounds)
+            if bound_cross:
+                ydata = np.concatenate((ydata[:, :index0], ydata[:, indexE:]), axis=1)
+            else:
+                ydata = ydata[:, index0:indexE]
+            tstats = self._get_stats(ydata, blocks=blocks)
+
+            if isinstance(data, tuple) or isinstance(data, np.ndarray):
+                data = "InputArray"
+            stats.append([data] + tstats)
+
+        if len(stats) < 1.5:
+            return stats[0][0], stats[0][1], stats[0][2]
+        else:
+            return (
+                [sublist[0] for sublist in stats],
+                [sublist[1] for sublist in stats],
+                [sublist[2] for sublist in stats],
+            )
 
     def block_average(self, x, blocksize=20):
         Nobs = len(x)

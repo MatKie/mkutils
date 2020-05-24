@@ -122,27 +122,6 @@ class EvalReplica(PlotSims):
                 factor=factor,
             )
 
-    def combine_quantity(
-        self, props, tmin=None, tmax=None, method="add", factor=None, average=True
-    ):
-
-        data = []
-        for replica_sim in self.replica_sims:
-            data.append(
-                replica_sim.combine_quantity(
-                    props,
-                    tmin=tmin,
-                    tmax=tmax,
-                    method=method,
-                    factor=factor,
-                    average=average,
-                )
-            )
-
-        profile = np.concatenate(data)
-
-        return profile
-
     def replica_stats(self, props=True, blocks=10, bounds=None):
         properties, avs, errs, drifts = [], [], [], []
         for replica_sim in self.replica_sims:
