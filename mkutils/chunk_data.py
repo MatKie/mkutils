@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 import copy
 
 
@@ -96,7 +97,7 @@ class ChunkData:
         self.binsize_varies = np.any(chunks - chunks[0] * np.ones(np.shape(chunks)))
 
     def _set_data(self, bounds):
-        tmin, tmax = self._get_tminmax(*bounds)
+        tmin, tmax = self._get_tminmax(bounds)
         if (
             # Do not read again if we already read that timeframe
             tmin == self.t[0]
@@ -205,7 +206,15 @@ class ChunkData:
             return self.combined_properties.index(prop) + len(self.props)
         raise RuntimeError('Property "{:s}" not found'.format(prop))
 
-    def _get_tminmax(self, tmin, tmax):
+    def _get_tminmax(self, bounds):
+        if bounds is not None:
+            if isinstance(bounds, tuple) and len(bounds) == 2:
+                tmin, tmax = bounds
+            else:
+                raise RuntimeError("bounds needs to be a tuple of length two or None")
+        else:
+            tmin, tmax = self.t_full[0], self.t_full[-1]
+            return tmin, tmax
         if tmin is not None or tmax is not None:
             if tmin is not None and tmax is None:
                 tmax = self.t_full[-1]
@@ -216,6 +225,7 @@ class ChunkData:
                 if tmax > self.t_full[-1]:
                     tmax = self.t_full[-1]
         else:
+            warnings.warn("bounds = (None, None) should be replaced by bounds=None!")
             tmin, tmax = self.t_full[0], self.t_full[-1]
 
         return tmin, tmax

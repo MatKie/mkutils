@@ -24,6 +24,7 @@ class EvalReplica(PlotSims):
         self.replica_dirs = self._collect_replica_dirs()
         self.replicas = self._collect_replicas()
         self.trim_data = trim_data  # For profiles...
+        self.replica_stats_data = []
 
         # What are we evaluating?
         simsuites = {"LAMMPS": PlotLAMMPS, "GROMACS": PlotGromacs, "CHUNKS": ChunkData}
@@ -107,7 +108,7 @@ class EvalReplica(PlotSims):
         average=True,
         difference=False,
         absolute_values=False,
-        bounds=(None, None),
+        bounds=None,
         factor=None,
     ):
         self.combined_properties.append(name)
@@ -122,7 +123,53 @@ class EvalReplica(PlotSims):
                 factor=factor,
             )
 
-    def replica_stats(self, props=True, blocks=10, bounds=(None, None), xbounds=(0, 1)):
+    def replica_stats(
+        self,
+        props=True,
+        blocks=10,
+        bounds=None,
+        xbounds=(0, 1),
+        outfile="replica_stats.out",
+    ):
+        # list(replicas) of lists(prop, mean, std, drift)
+        stats = self._replica_stats(
+            props=props, blocks=blocks, bounds=bounds, xbounds=xbounds
+        )
+        properties = stats[0][0]
+        means = []
+        tmeans = [item[1] for item in stats]
+        for i in range(len(properties)):
+            tlist = [item[i] for item in tmeans]
+            means.append(tlist)
+        mean = [np.mean(meani) for meani in means]
+        std = [np.std(meani) for meani in means]
+
+        if outfile is not None:
+            with open(outfile, "w") as f:
+                for (i, prop), meani, stdi in zip(enumerate(properties), mean, std):
+                    f.write(
+                        "{:15s}\t{:12s}\t{:12s}\t{:12s}\n".format(
+                            "Property", "Mean", "Error", "Drift"
+                        )
+                    )
+                    for rep in stats:
+                        args = [item[i] for item in rep]
+                        string = "{:15s}".format(args[0])
+                        for item in args[1:]:
+                            string = "\t".join([string, "{:<12.4f}".format(item)])
+                        f.write("{:s}\n".format(string))
+                    f.write("{:s}\n".format("-" * 63))
+                    f.write(
+                        "{:15s}\t{:12s}\t{:12s}\n".format("Property", "Mean", "Error")
+                    )
+                    f.write(
+                        "{:15s}\t{:<12.4f}\t{:<12.4f}\n\n".format(
+                            str(prop), meani, stdi
+                        )
+                    )
+        return properties, mean, std
+
+    def _replica_stats(self, props=True, blocks=10, bounds=None, xbounds=(0, 1)):
         stats = []
         for replica_sim in self.replica_sims:
             tstats = replica_sim.get_stats(
