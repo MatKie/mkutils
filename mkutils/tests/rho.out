@@ -1,0 +1,14 @@
+Property       	Mean        	Error       	Drift       
+Ncount         	115.5918    	0.0770      
+Ncount         	115.5742    	0.1744      
+---------------------------------------------------------------
+Property       	Mean        	Error       
+Ncount         	115.5830    	0.0088      
+
+Property       	Mean        	Error       	Drift       
+density/number 	0.0333      	0.0000      
+density/number 	0.0333      	0.0001      
+---------------------------------------------------------------
+Property       	Mean        	Error       
+density/number 	0.0333      	0.0000      
+

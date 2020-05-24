@@ -21,7 +21,13 @@ rho.create_combined_property(
 props.create_combined_property(["avg_ke", "thermo_pe"], "total_energy", average=False)
 
 props.create_combined_property(
-    ["avg_ke", "thermo_pe"], "total_energy", average=False, bounds=(10000, 100000)
+    ["avg_ke", "thermo_pe"], "total_energy", average=False, bounds=(1, 10)
 )
 
-print(props.replica_stats())
+# One output for each replica sim
+print(props._replica_stats(xbounds=(0, 0.2)))
+print(rho._replica_stats(bounds=(10000, 100000), xbounds=(0.1, -0.1)))
+
+
+props.replica_stats(outfile="props.out")
+rho.replica_stats(outfile="rho.out", xbounds=(0.1, -0.1), bounds=(10000, 1000000))
