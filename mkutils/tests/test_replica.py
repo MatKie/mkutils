@@ -24,7 +24,4 @@ props.create_combined_property(
     ["avg_ke", "thermo_pe"], "total_energy", average=False, bounds=(10000, 100000)
 )
 
-print(props.get_stats("thermo_press"))
-rho1 = rho.replica_sims[0]
-print(rho1.get_stats("density/weight", xbounds=(0.1, -0.1)))
-print(rho.get_stats())
+print(props.replica_stats())

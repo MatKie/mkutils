@@ -152,7 +152,7 @@ class PlotSims:
         start, end = self._calc_drift(x, y)
         return [mean, err, end - start]
 
-    def get_stats(self, props=True, blocks=10, bounds=None):
+    def get_stats(self, props=True, blocks=10, bounds=None, *args, **kwargs):
         """
         Calculate mean, error and drift on all or a selection of properties.
         

@@ -281,7 +281,15 @@ class ChunkData:
         mean, error = self._get_stats(ydata)
         return mean, error
 
-    def get_stats(self, props=True, xbounds=(0, 1), bounds=(None, None), blocks=10):
+    def get_stats(
+        self,
+        props=True,
+        xbounds=(0, 1),
+        bounds=(None, None),
+        blocks=10,
+        *args,
+        **kwargs
+    ):
         x0, xE = xbounds
         discretisation = 1.0 / len(self.x)
         bound_cross = False

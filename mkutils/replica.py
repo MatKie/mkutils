@@ -122,18 +122,14 @@ class EvalReplica(PlotSims):
                 factor=factor,
             )
 
-    def replica_stats(self, props=True, blocks=10, bounds=None):
-        properties, avs, errs, drifts = [], [], [], []
+    def replica_stats(self, props=True, blocks=10, bounds=(None, None), xbounds=(0, 1)):
+        stats = []
         for replica_sim in self.replica_sims:
-            prop, av, err, drift = replica_sim.get_stats(
-                props=props, blocks=blocks, bounds=bounds
+            tstats = replica_sim.get_stats(
+                props=props, blocks=blocks, bounds=bounds, xbounds=xbounds
             )
-            properties.append(prop)
-            avs.append(av)
-            errs.append(err)
-            drifts.append(drift)
-
-        return properties, avs, errs, drifts
+            stats.append(tstats)
+        return stats
 
     def _replica_combine_data(self, pos, bounds=None):
         """
