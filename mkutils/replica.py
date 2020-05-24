@@ -108,6 +108,7 @@ class EvalReplica(PlotSims):
         difference=False,
         absolute_values=False,
         bounds=(None, None),
+        factor=None,
     ):
         self.combined_properties.append(name)
         for replica_sim in self.replica_sims:
@@ -118,6 +119,7 @@ class EvalReplica(PlotSims):
                 difference=difference,
                 absolute_values=absolute_values,
                 bounds=bounds,
+                factor=factor,
             )
 
     def combine_quantity(
