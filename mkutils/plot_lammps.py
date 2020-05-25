@@ -31,6 +31,10 @@ class PlotLAMMPS(PlotSims):
     def _get_unit(self, prop):
         return ""
 
+    def get_data(self, prop, bounds=None):
+        pos = self._get_pos(prop)
+        return self._get_data(pos, bounds=bounds)
+
     def _get_data(self, pos, bounds=None):
 
         len_props = len(self.properties) + 1

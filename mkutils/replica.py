@@ -4,6 +4,7 @@ from .plot_gromacs import PlotGromacs
 from .plot_lammps import PlotLAMMPS
 from .chunk_data import ChunkData
 import os
+import copy
 
 
 class EvalReplica(PlotSims):
@@ -178,7 +179,7 @@ class EvalReplica(PlotSims):
             stats.append(tstats)
         return stats
 
-    def _replica_combine_data(self, pos, bounds=None):
+    def _replica_combine_data(self, prop, bounds=None):
         """
         This method returns the x,y of a combined trajcetory excluding equil.
         Specifically it makes the data more or less one trajectory
@@ -187,7 +188,7 @@ class EvalReplica(PlotSims):
         x0 = 0.0
         xs, ys = [], []
         for i, replica_sim in enumerate(self.replica_sims):
-            xr, yr = replica_sim._get_data(pos, bounds=bounds)
+            xr, yr = copy.deepcopy(replica_sim.get_data(prop, bounds=bounds))
             xr -= xr[0]  # Value is non-zero for non-zero lower bound
             xr += x0 + xr[1] - xr[0]  # The dx is bc we miss one step
             x0 = xr[-1]  # Save end value of last trajectory
@@ -199,7 +200,7 @@ class EvalReplica(PlotSims):
 
         return x, y
 
-    def get_stats(self, props=True, blocks=10, bounds=None):
+    def get_stats(self, props=True, blocks=10, bounds=None, xbounds=None):
         """
         Calculate mean, error and drift on all or a selection of properties.
         
@@ -221,19 +222,30 @@ class EvalReplica(PlotSims):
 
         replica_sim = self.replica_sims[0]
 
+        if xbounds is not None:
+            x0, xE = xbounds
+            discretisation = 1.0 / len(replica_sim.x)
+            bound_cross = False
+            if xE < 0:
+                xE = 1 + xE
+                bound_cross = True
+            index0 = int(np.round(x0 / discretisation))
+            indexE = int(np.round(xE / discretisation))
+
         for prop in props:
-            pos = replica_sim._get_pos(prop)
-            x, y = self._replica_combine_data(pos, bounds=bounds)
-            tlist = [prop]
-            tstats = replica_sim._get_stats(x, y, blocks=blocks, bounds=bounds)
+            x, y = self._replica_combine_data(prop, bounds=bounds)
+            if xbounds is not None:
+                if bound_cross:
+                    y = np.concatenate((y[:, :index0], y[:, indexE:]), axis=1)
+                else:
+                    y = y[:, index0:indexE]
+
+            tstats = replica_sim._get_stats(x, y, blocks=blocks)
             stats.append([prop] + tstats)
 
         if len(stats) < 1.5:
-            return stats[0][0], stats[0][1], stats[0][2], stats[0][3]
+            ret = tuple(item for item in stats[0])
+            return ret
         else:
-            return (  # This could be adopted to only handle three stats
-                [sublist[0] for sublist in stats],
-                [sublist[1] for sublist in stats],
-                [sublist[2] for sublist in stats],
-                [sublist[3] for sublist in stats],
-            )
+            ret = tuple([stat[i] for stat in stats] for i in range(len(stats[0])))
+            return ret  # This could be adopted to only handle three stats

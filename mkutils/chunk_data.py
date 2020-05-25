@@ -108,7 +108,7 @@ class ChunkData:
 
         ind_tmin = np.where(self.t_full == tmin)[0][0]
         ind_tmax = np.where(self.t_full == tmax)[0][0]
-        self.t = self.t_full[ind_tmin:ind_tmax]  #  Excluding last one
+        self.t = self.t_full[ind_tmin : ind_tmax + 1]  #  Including last one
         tdiff = ind_tmax - ind_tmin
         usecols = [item for item in range(2, len(self.props) + 2)]
         if self.binsize_varies:
@@ -288,7 +288,7 @@ class ChunkData:
             ydata = np.concatenate((ydata[:, :index0], ydata[:, indexE:]), axis=1)
         else:
             ydata = ydata[:, index0:indexE]
-        mean, error = self._get_stats(ydata)
+        mean, error = self._get_stats(t, ydata)
         return mean, error
 
     def get_stats(
@@ -325,7 +325,7 @@ class ChunkData:
                 ydata = np.concatenate((ydata[:, :index0], ydata[:, indexE:]), axis=1)
             else:
                 ydata = ydata[:, index0:indexE]
-            tstats = self._get_stats(ydata, blocks=blocks)
+            tstats = self._get_stats(t, ydata, blocks=blocks)
 
             if isinstance(data, tuple) or isinstance(data, np.ndarray):
                 data = "InputArray"
@@ -349,7 +349,7 @@ class ChunkData:
         x = np.reshape(x[cutout:], (blocks, blocksize, 1))
         return np.mean(x, axis=1)
 
-    def _get_stats(self, ydata, blocks=10):
+    def _get_stats(self, t, ydata, blocks=10):
         times = np.shape(ydata)[0]
         blocksize = int(np.ceil(times / blocks))
         x = np.average(ydata, axis=1)

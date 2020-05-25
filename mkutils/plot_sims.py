@@ -144,7 +144,7 @@ class PlotSims:
         else:
             ax.set_xlim(x[0], x[-1])
 
-    def _get_stats(self, x, y, blocks=10, bounds=None):
+    def _get_stats(self, x, y, blocks=10):
         blocksize = int(x.size / blocks)
         blocks = self.block_average(y, blocksize=blocksize)
         mean = np.mean(blocks)
@@ -175,7 +175,7 @@ class PlotSims:
         for prop in props:
             pos = self._get_pos(prop)
             x, y = self._get_data(pos, bounds=bounds)
-            tstats = self._get_stats(x, y, blocks=blocks, bounds=bounds)
+            tstats = self._get_stats(x, y, blocks=blocks)
             stats.append([prop] + tstats)
 
         if len(stats) < 1.5:
