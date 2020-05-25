@@ -176,7 +176,10 @@ class EvalReplica(PlotSims):
             tstats = replica_sim.get_stats(
                 props=props, blocks=blocks, bounds=bounds, xbounds=xbounds
             )
+            if isinstance(tstats[0], str):
+                tstats = [[item] for item in tstats]
             stats.append(tstats)
+
         return stats
 
     def _replica_combine_data(self, prop, bounds=None):

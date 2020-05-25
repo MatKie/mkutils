@@ -32,6 +32,12 @@ print(rho._replica_stats(bounds=(10000, 100000), xbounds=(0.1, -0.1)))
 props.replica_stats(outfile="props.out")
 
 rho.replica_stats(outfile="rho.out", xbounds=(0.1, -0.1), bounds=(10000, 1000000))
+rho.replica_stats(
+    props="density/number",
+    outfile="rho.out",
+    xbounds=(0.1, -0.1),
+    bounds=(10000, 1000000),
+)
 
 print("-------\n")
 print(props.get_stats())
@@ -45,4 +51,3 @@ print("-------\n")
 
 
 print(rho.get_stats(bounds=(10000, 100000), xbounds=(0.1, -0.1)))
-
