@@ -29,8 +29,7 @@ class PlotSims:
         if prop in self.properties:
             return self.properties.index(prop) + 1
         elif prop in self.combined_properties:
-            ind = self.combined_properties.index(prop) + len(self.properties)
-            +1
+            ind = self.combined_properties.index(prop) + len(self.properties) + 1
             return ind
         else:
             raise ValueError("Property not available")

@@ -133,6 +133,15 @@ class EvalReplica(PlotSims):
         outfile="replica_stats.out",
     ):
         # list(replicas) of lists(prop, mean, std, drift)
+        if len(self.replica_sims) < 1.5:
+            if not isinstance(self.replica_sims[0], ChunkData):
+                xbounds = None
+            stats = self.get_stats(
+                props=props, blocks=blocks, bounds=bounds, xbounds=xbounds
+            )
+
+            return stats[0], stats[1], stats[2]
+
         stats = self._replica_stats(
             props=props, blocks=blocks, bounds=bounds, xbounds=xbounds
         )
@@ -168,6 +177,8 @@ class EvalReplica(PlotSims):
                             str(prop), meani, stdi
                         )
                     )
+        if len(mean) < 1.5:
+            return properties[0], mean[0], std[0]
         return properties, mean, std
 
     def _replica_stats(self, props=True, blocks=10, bounds=None, xbounds=(0, 1)):
