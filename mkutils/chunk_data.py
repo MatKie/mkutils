@@ -109,9 +109,15 @@ class ChunkData:
         ind_tmin = np.where(self.t_full == tmin)[0][0]
         ind_tmax = np.where(self.t_full == tmax)[0][0]
         self.t = self.t_full[ind_tmin : ind_tmax + 1]  #  Including last one
-        tdiff = ind_tmax - ind_tmin
+        tdiff = ind_tmax - ind_tmin + 1  # Including last one
         usecols = [item for item in range(2, len(self.props) + 2)]
         if self.binsize_varies:
+            if tmin != self.t_full[0]:
+                raise RuntimeError(
+                    "It's unsave/unsupported to read data \
+                    from times which are not the initial time when the \
+                    binsize varies!"
+                )
             data = np.zeros((tdiff, max(self.chunks), len(self.props)))
             pastchunks = 0
             for ti in range(tdiff):
@@ -131,7 +137,7 @@ class ChunkData:
             for ti in range(tdiff):
                 data[ti, :, :] = np.loadtxt(
                     self.infile,
-                    skiprows=ti * dchunks + 4,
+                    skiprows=(ind_tmin + ti) * dchunks + 4,
                     usecols=usecols,
                     max_rows=chunks,
                 )
