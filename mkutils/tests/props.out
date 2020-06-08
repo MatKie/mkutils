@@ -1,0 +1,49 @@
+Property       	Mean        	Error       	Drift       
+thermo_temp    	298.1576    	0.0540      	0.0645      
+thermo_temp    	298.1892    	0.0645      	-0.0845     
+---------------------------------------------------------------
+Property       	Mean        	Error       
+thermo_temp    	298.1734    	0.0158      
+
+Property       	Mean        	Error       	Drift       
+thermo_press   	36.9133     	1.1493      	2.4408      
+thermo_press   	38.0484     	1.3944      	-2.0628     
+---------------------------------------------------------------
+Property       	Mean        	Error       
+thermo_press   	37.4809     	0.5675      
+
+Property       	Mean        	Error       	Drift       
+thermo_press_xx	36.0610     	2.3542      	2.9091      
+thermo_press_xx	38.1216     	2.7274      	-2.2143     
+---------------------------------------------------------------
+Property       	Mean        	Error       
+thermo_press_xx	37.0913     	1.0303      
+
+Property       	Mean        	Error       	Drift       
+thermo_press_yy	37.5116     	1.6352      	1.8550      
+thermo_press_yy	36.7470     	1.7289      	-1.9637     
+---------------------------------------------------------------
+Property       	Mean        	Error       
+thermo_press_yy	37.1293     	0.3823      
+
+Property       	Mean        	Error       	Drift       
+thermo_press_zz	37.1674     	1.6835      	2.5584      
+thermo_press_zz	39.2766     	1.6442      	-2.0105     
+---------------------------------------------------------------
+Property       	Mean        	Error       
+thermo_press_zz	38.2220     	1.0546      
+
+Property       	Mean        	Error       	Drift       
+thermo_pe      	-24303.3740 	0.6038      	1.5022      
+thermo_pe      	-24302.7591 	0.6169      	-0.8047     
+---------------------------------------------------------------
+Property       	Mean        	Error       
+thermo_pe      	-24303.0666 	0.3075      
+
+Property       	Mean        	Error       	Drift       
+avg_ke         	5110.3188   	0.9264      	1.1060      
+avg_ke         	5110.8603   	1.1061      	-1.4476     
+---------------------------------------------------------------
+Property       	Mean        	Error       
+avg_ke         	5110.5896   	0.2708      
+
