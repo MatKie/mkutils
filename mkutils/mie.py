@@ -73,7 +73,7 @@ class mixture(object):
 
 
 class mie(object):
-    def __init__(self, l_r, l_a, eps, sig, rc=1000, shift=False):
+    def __init__(self, l_r, l_a, eps, sig, rc=1000.0, shift=False):
         self.R = 8.3144598  # ideal gas constant
         self.l_r = l_r
         self.l_a = l_a
@@ -83,8 +83,26 @@ class mie(object):
         self.shift = shift
 
     @classmethod
-    def lj(cls, eps, sig, rc=1000, shift=False):
-        return cls(12, 6, eps, sig, rc=rc, shift=shift)
+    def cgw_ift(cls, T, rc=1000.0, shift=False):
+        eps = mie.get_ift_epsilon(T)
+        sig = mie.get_ift_sigma(T)
+        return cls(8.0, 6.0, eps, sig, rc=rc, shift=shift)
+
+    @staticmethod
+    def get_ift_sigma(T):
+        coeff = [-6.455e-9, 9.1e-6, -4.291e-3, 3.543]
+        fit = np.poly1d(coeff)  # in Angstroem
+        return fit(T) / 10.0
+
+    @staticmethod
+    def get_ift_epsilon(T):
+        coeff = [-4.806e-4, 0.6107, 165.9]
+        fit = np.poly1d(coeff)
+        return fit(T)
+
+    @classmethod
+    def lj(cls, eps, sig, rc=1000.0, shift=False):
+        return cls(12.0, 6.0, eps, sig, rc=rc, shift=shift)
 
     @classmethod
     def mix(cls, mie1, mie2, rule="LB", k=0.0, rc=None, shift=False):
@@ -278,8 +296,8 @@ class mie(object):
                 np.sqrt(sig[0] * sig[1]),
             )
         elif rule == "SAFT":
-            sigma = np.sqrt(sig[0] * sig[1])
-            size_assym = np.sqrt(sig[0] ** 3 * sig[1] ** 3) / sigma
+            sigma = np.mean(sig)
+            size_assym = np.sqrt(sig[0] ** 3 * sig[1] ** 3) / sigma ** 3
             epsilon = size_assym * np.sqrt(eps[0] * eps[1]) * (1 - k)
             return (
                 3 + np.sqrt((l_r[0] - 3) * (l_r[1] - 3)),
@@ -305,3 +323,4 @@ def coulomb(qi, qj, r, eps0=1):
     U(r_ij) = 1.67146*10^4 * q_i*q_j/(eps_0) * 1/r_ij
     """
     return 16714.6 * qi * qj * (1 / (eps0 * r))
+

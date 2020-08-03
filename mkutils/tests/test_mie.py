@@ -71,3 +71,35 @@ def test_NaF_mixture():
     LRC_p = mix.LRC_p(dens, composition)
 
     assert LRC_p == approx(-79.4747, 0.01)
+
+
+eps_W = 305.21  # Kelvin
+sigma_W = 0.29016  # nm
+lambda_W = 8.0
+sigma_T = 0.45012
+eps_T = 358.37
+lambda_T = 15.947
+
+
+def test_SAFT_rules():
+    mie_W = mie(lambda_W, 6.0, eps_W, sigma_W)
+    mie_T = mie(lambda_T, 6.0, eps_T, sigma_T)
+
+    mie_WT = mie.mix(mie_W, mie_T, rule="SAFT", k=0.31)
+    assert mie_WT.eps == approx(212.40, abs=0.01)
+    assert mie_WT.sig == approx(0.37014, abs=1e-5)
+    assert mie_WT.l_r == approx(11.046, abs=0.001)
+
+
+def test_epsilon():
+    assert mie.cgw_ift(293.0).eps == approx(304.28, 1e-2)
+    assert mie.cgw_ift(298).eps == approx(305.21, 1e-3)
+    assert mie.cgw_ift(463.0).eps == approx(345.43, 1e-3)
+    assert mie.cgw_ift(343).eps == approx(318.84, 1e-3)
+
+
+def test_sigma():
+    assert mie.cgw_ift(293).sig == approx(2.9055e-1, 1e-3)
+    assert mie.cgw_ift(298).sig == approx(2.9016e-1, 1e-4)
+    assert mie.cgw_ift(343).sig == approx(2.8811e-1, 1e-4)
+    assert mie.cgw_ift(463).sig == approx(2.866e-1, 5e-4)
