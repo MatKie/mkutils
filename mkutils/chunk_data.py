@@ -236,13 +236,13 @@ class ChunkData:
 
         return tmin, tmax
 
-    def plot_profile(self, ax, data, label="", bounds=(None, None), color=None):
+    def plot_profile(self, ax, data, label="", bounds=(None, None), color=None, lw=2):
 
         t, ydata = self._get_data(data, bounds)
         if np.shape(ydata) != np.shape(self.x):
             ydata = self.average_data(ydata)
 
-        ax.plot(self.x, ydata, color=color, lw=2, label=label)
+        ax.plot(self.x, ydata, color=color, lw=lw, label=label)
 
     def get_data(self, data, bounds=(None, None)):
         """
