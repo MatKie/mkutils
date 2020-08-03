@@ -247,7 +247,7 @@ class mie(object):
         return c * eps * (int_r + int_a)
 
     @staticmethod
-    def _mix(eps, sig, l_r=[12, 12], l_a=[6, 6], rule="LB", k=0.0):
+    def _mix(eps, sig, l_r=[12, 12], l_a=[6, 6], rule="SAFT", k=0.0):
         """
         Function to calculate combining/mixing rules.
 
@@ -276,6 +276,16 @@ class mie(object):
                 3 + np.sqrt((l_a[0] - 3) * (l_a[1] - 3)),
                 (1 - k) * np.sqrt(eps[0] * eps[1]),
                 np.sqrt(sig[0] * sig[1]),
+            )
+        elif rule == "SAFT":
+            sigma = np.sqrt(sig[0] * sig[1])
+            size_assym = np.sqrt(sig[0] ** 3 * sig[1] ** 3) / sigma
+            epsilon = size_assym * np.sqrt(eps[0] * eps[1]) * (1 - k)
+            return (
+                3 + np.sqrt((l_r[0] - 3) * (l_r[1] - 3)),
+                3 + np.sqrt((l_a[0] - 3) * (l_a[1] - 3)),
+                epsilon,
+                sigma,
             )
         else:
             raise ValueError("Unknown Combining Rule Specified!")
