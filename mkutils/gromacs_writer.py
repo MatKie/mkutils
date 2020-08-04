@@ -28,8 +28,17 @@ class FFWriter(object):
     def __init__(self, param_file):
         self.param_file = param_file
 
-    def add_atomtype(self, name, l_r, l_a, eps, sig, MW, update=False):
-        _dict = {name: {"l_r": l_r, "l_a": l_a, "eps": eps, "sig": sig, "MW": MW}}
+    def add_atomtype(self, name, l_r, l_a, eps, sig, MW, at_num, update=False):
+        _dict = {
+            name: {
+                "l_r": l_r,
+                "l_a": l_a,
+                "eps": eps,
+                "sig": sig,
+                "MW": MW,
+                "at_num": at_num,
+            }
+        }
         _ff_dict = self._open_json()
         if name in _ff_dict.get("atomtypes").keys():
             if not update:
@@ -63,6 +72,15 @@ class FFWriter(object):
         _ff_dict.get("crossint").update(_dict)
 
         self._close_json(_ff_dict)
+
+    def write_forcefield():
+        pass
+
+    def write_atomtypes():
+        pass
+
+    def write_crossint():
+        pass
 
     def _open_json(self):
         with open(self.param_file, "r") as f:

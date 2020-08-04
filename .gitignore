@@ -13,3 +13,4 @@ mkutils.egg-info/top_level.txt
 .DS_Store
 .vscode/launch.json
 mkutils/tests/test.json
+test.json
