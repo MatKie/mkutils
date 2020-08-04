@@ -103,3 +103,11 @@ def test_sigma():
     assert mie.cgw_ift(298).sig == approx(2.9016e-1, 1e-4)
     assert mie.cgw_ift(343).sig == approx(2.8811e-1, 1e-4)
     assert mie.cgw_ift(463).sig == approx(2.866e-1, 5e-4)
+
+
+def test_prefacs():
+    water = mie.cgw_ift(298.15)
+    C6 = water.get_C_attr()
+    C8 = water.get_C_rep()
+    assert C6 == approx(1.435826405e-2)
+    assert C8 == approx(1.208769438e-3)

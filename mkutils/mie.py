@@ -92,7 +92,7 @@ class mie(object):
     def get_ift_sigma(T):
         coeff = [-6.455e-9, 9.1e-6, -4.291e-3, 3.543]
         fit = np.poly1d(coeff)  # in Angstroem
-        return fit(T) / 10.0
+        return fit(T) / 10.0  # in nm
 
     @staticmethod
     def get_ift_epsilon(T):
@@ -175,6 +175,28 @@ class mie(object):
         else:
             M = np.asarray([self.force(ri) for ri in r])
             return M
+
+    def get_C_attr(self):
+        """
+        Calculate gromacs coefficient associatted with the attractive
+        part of the potential.
+
+        C_attr = C*eps*sig^l_a, where C is from Mie potential.
+
+        eps in kJ/mol therefore eps = eps[K] * R[kJ/mol/K]
+        """
+        prefac = mie.prefactor(self.l_r, self.l_a)
+        return prefac * self.eps / 1000.0 * self.R * self.sig ** self.l_a
+
+    def get_C_rep(self):
+        """
+        Calculate gromacs coefficient associatted with the repulsive
+        part of the potential.
+
+        C_attr = C*eps*sig^l_r, where C is from Mie potential
+        """
+        prefac = mie.prefactor(self.l_r, self.l_a)
+        return prefac * self.eps / 1000.0 * self.R * self.sig ** self.l_r
 
     def LRC_en(self, rho):
         """
