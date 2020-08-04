@@ -105,11 +105,40 @@ class mie(object):
         return cls(12.0, 6.0, eps, sig, rc=rc, shift=shift)
 
     @classmethod
-    def mix(cls, mie1, mie2, rule="LB", k=0.0, rc=None, shift=False):
+    def mix(cls, mie1, mie2, rule="SAFT", k=0.0, eps_mix=False, rc=None, shift=False):
+        '''
+        Returns mixed potential acc. to rule. If eps_mix specified k is 
+        ignored.
+
+        Parameters
+        ----------
+        mie1 : mie object
+            First potential.
+        mie2 : mie object
+            Second potential.
+        rule : str, optional
+            Lorentz-Berthelot, geometric or SAFT tyep, by default "SAFT"
+        k : float, optional
+            eps_mix = (1-k) eps_mix_ideal, by default 0.0
+        eps_mix : bool, optional
+            Setting and explicit eps_mix, calculating k, by default False
+        rc : float, optional
+            cutoff for calculation or shift, by default None
+        shift : bool, optional
+            To shift or not to shift, by default False
+
+        Returns
+        -------
+        mie class
+        '''
         l_r = [mie1.l_r, mie2.l_r]
         l_a = [mie1.l_a, mie2.l_a]
         eps = [mie1.eps, mie2.eps]
         sig = [mie1.sig, mie2.sig]
+
+        if eps_mix is not False:
+            _, _, eps_0, _ = mie._mix(eps, sig, l_r, l_a, rule=rule, k=0.0)
+            k = 1. - (eps_mix / eps_0)
 
         if rc is None:
             rc = mie1.rc

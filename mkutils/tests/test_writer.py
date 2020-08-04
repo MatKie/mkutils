@@ -37,7 +37,7 @@ def test_crossint3():
     this_ff.add_crossint("W", "T", 0.31, update=True)
     with open("test.json", "r") as f:
         _ff_dict = json.load(f)
-        assert _ff_dict.get("crossint").get("W:T") == approx(0.31)
+        assert _ff_dict.get("crossint").get("W:T").get("k") == approx(0.31)
 
 
 def test_atomtype1():

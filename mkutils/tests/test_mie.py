@@ -111,3 +111,13 @@ def test_prefacs():
     C8 = water.get_C_rep()
     assert C6 == approx(1.435826405e-2)
     assert C8 == approx(1.208769438e-3)
+
+
+def test_eps_mix():
+    mie_W = mie(lambda_W, 6.0, eps_W, sigma_W)
+    mie_T = mie(lambda_T, 6.0, eps_T, sigma_T)
+
+    mie_WT = mie.mix(mie_W, mie_T, rule="SAFT", k=111, eps_mix=212.4)
+    assert mie_WT.eps == approx(212.40, abs=0.01)
+    assert mie_WT.sig == approx(0.37014, abs=1e-5)
+    assert mie_WT.l_r == approx(11.046, abs=0.001)

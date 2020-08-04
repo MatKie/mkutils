@@ -43,9 +43,9 @@ class FFWriter(object):
 
         self._close_json(_ff_dict)
 
-    def add_crossint(self, name1, name2, kij, update=False):
+    def add_crossint(self, name1, name2, k=0.0, eps_mix=False, update=False):
         _fr_set = frozenset([name1, name2])
-        _dict = {_fr_set: kij}
+        _dict = {_fr_set: {"k": k, "eps_mix": eps_mix}}
 
         _ff_dict = self._open_json()
         for name in [name1, name2]:
