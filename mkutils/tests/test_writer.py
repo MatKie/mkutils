@@ -62,3 +62,20 @@ def test_atomtype2():
 
 
 this_ff.add_crossint("W", "T", 0.31, update=True)
+
+
+def test_write_atomtypes():
+    print(this_ff.print_atomtypes())
+
+
+def test_write_crossints():
+    print(this_ff.print_crossints())
+
+
+def test_write_all():
+    this_ff.write_forcefield()
+
+
+test_write_atomtypes()
+test_write_crossints()
+test_write_all()
