@@ -1,5 +1,6 @@
 from .mie import mie
 import json
+import os
 
 
 class FFWriter(object):
@@ -103,6 +104,37 @@ class FFWriter(object):
             return_string = "\n".join([return_string, _l])
 
         return return_string
+
+    def write_tables(self, shift=True, cutoff=2.0, double_prec=False):
+        ff_dict = self._open_json()
+        atomtypes = ff_dict.get("atomtypes")
+        keys = list(atomtypes.keys())
+
+        if not os.path.isdir("tables"):
+            os.makedirs("tables")
+        os.chdir("tables")
+        for i, type_i in enumerate(keys):
+            for type_j in keys[i:]:
+                atomtype_i = atomtypes.get(type_i)
+                atomtype_j = atomtypes.get(type_j)
+                _argsi = tuple(
+                    atomtype_i.get(key) for key in ["l_r", "l_a", "eps", "sig"]
+                )
+                _argsj = tuple(
+                    atomtype_j.get(key) for key in ["l_r", "l_a", "eps", "sig"]
+                )
+                _mie_i = mie(*_argsi)
+                _mie_j = mie(*_argsj)
+
+                mix = mie.mix(_mie_i, _mie_j, rc=cutoff, shift=shift)
+
+                mix.write_table(
+                    names=(type_i, type_j),
+                    double_prec=double_prec,
+                    cutoff=cutoff,
+                    shift=shift,
+                )
+        os.chdir("..")
 
     def print_crossints(self):
         _fl = "[ nonbond_params ]"
