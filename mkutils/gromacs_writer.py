@@ -15,7 +15,7 @@ class FFWriter(object):
         {'atomtypes' : {'Atom1': {'epsilon': float (in Kelvin), 
         'sigma': float (in nm), 'l_r': float, 'l_a': float, 
         'MW': float }}, 
-        'crossint': {frozenset('Atom1', 'Atom2'): float (k_ij)}
+        'crossints': {frozenset('Atom1', 'Atom2'): float (k_ij)}
         }
     
     Methods
@@ -61,7 +61,7 @@ class FFWriter(object):
             if name not in _ff_dict.get("atomtypes").keys():
                 raise ValueError("{:s} not an atomtype!".format(name))
 
-        if _fr_set in _ff_dict.get("crossint").keys():
+        if _fr_set in _ff_dict.get("crossints").keys():
             if not update:
                 raise ValueError(
                     "Crossint already in forcefield. Explicitly \
@@ -69,7 +69,7 @@ class FFWriter(object):
                 )
             print("Updating {:s} - {:s} cross interaction.".format(name1, name2))
 
-        _ff_dict.get("crossint").update(_dict)
+        _ff_dict.get("crossints").update(_dict)
 
         self._close_json(_ff_dict)
 
@@ -114,7 +114,7 @@ class FFWriter(object):
 
         ff_dict = self._open_json()
         atomtypes = ff_dict.get("atomtypes")
-        crossints = ff_dict.get("crossint")
+        crossints = ff_dict.get("crossints")
         for _namei, atomtypei in atomtypes.items():
             for _namej, atomtypej in atomtypes.items():
 
@@ -145,15 +145,15 @@ class FFWriter(object):
     def _open_json(self):
         with open(self.param_file, "r") as f:
             ff_dict = json.load(f)
-        ff_dict["crossint"] = {
+        ff_dict["crossints"] = {
             frozenset(key.split(":")): value
-            for key, value in ff_dict.get("crossint").items()
+            for key, value in ff_dict.get("crossints").items()
         }
         return ff_dict
 
     def _close_json(self, ff_dict):
-        ff_dict["crossint"] = {
-            ":".join(key): value for key, value in ff_dict.get("crossint").items()
+        ff_dict["crossints"] = {
+            ":".join(key): value for key, value in ff_dict.get("crossints").items()
         }
         with open(self.param_file, "w") as f:
             json.dump(ff_dict, f)

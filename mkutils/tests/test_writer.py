@@ -5,7 +5,7 @@ import json
 import os
 
 
-test_dict = {"crossint": {}, "atomtypes": {}}
+test_dict = {"crossints": {}, "atomtypes": {}}
 
 with open("test.json", "w") as f:
     json.dump(test_dict, f)
@@ -39,9 +39,9 @@ def test_crossint3():
     with open(json_file, "r") as f:
         _ff_dict = json.load(f)
         try:
-            assert _ff_dict.get("crossint").get("W:T").get("k") == approx(0.31)
+            assert _ff_dict.get("crossints").get("W:T").get("k") == approx(0.31)
         except:
-            assert _ff_dict.get("crossint").get("T:W").get("k") == approx(0.31)
+            assert _ff_dict.get("crossints").get("T:W").get("k") == approx(0.31)
 
 
 def test_atomtype1():
