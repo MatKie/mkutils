@@ -106,7 +106,7 @@ class mie(object):
 
     @classmethod
     def mix(cls, mie1, mie2, rule="SAFT", k=0.0, eps_mix=False, rc=None, shift=False):
-        '''
+        """
         Returns mixed potential acc. to rule. If eps_mix specified k is 
         ignored.
 
@@ -130,7 +130,7 @@ class mie(object):
         Returns
         -------
         mie class
-        '''
+        """
         l_r = [mie1.l_r, mie2.l_r]
         l_a = [mie1.l_a, mie2.l_a]
         eps = [mie1.eps, mie2.eps]
@@ -138,7 +138,7 @@ class mie(object):
 
         if eps_mix is not False:
             _, _, eps_0, _ = mie._mix(eps, sig, l_r, l_a, rule=rule, k=0.0)
-            k = 1. - (eps_mix / eps_0)
+            k = 1.0 - (eps_mix / eps_0)
 
         if rc is None:
             rc = mie1.rc
@@ -153,6 +153,102 @@ class mie(object):
         )
 
         return cls(l_r_mix, l_a_mix, eps_mix, sig_mix, rc=rc, shift=shift)
+
+    def write_table(
+        self, names=None, eps0=1.0, double_prec=False, cutoff=2.0, shift=None
+    ):
+        """
+        Write the tabulated potential used with gromacs. 
+        Couldn't find the gromacs docu for the fixed format, therefore
+        deduced it from the tables supplied with gromacs 2019.3.
+        Tables will be constructed with cut/shift acc. to suppl. mie
+        potential and include a 1.5nm extension to accomodate 
+        table-extension and neighbourlist skin.
+
+        V(r) = q_i*q_j/eps0 f(r) + C_la g(r) + C_lr h(r)
+
+        -> Tables include r, f(r), -f'(r), g(r), -g'(r), h(r), h'(r)
+
+        For a 8-6 potential g, h and derivatives are:
+
+        g(r) = -(1/r)^6, -g'(r) = -6*(1/r)^7 (force)
+        h(r) = (1/r)^8, -h'(r) = 8*(1/r)^9
+
+        Parameters
+        ----------
+        names : array like, optional
+            Names can be supplied in a tuple or list of two. Will 
+            name output file table_name1_name2.xvg, by default None.
+        eps0 : float, optional
+            For the coulomb potential calculated. Not used more for future 
+            prooving, by default 1.
+        double_prec : bool, optional
+            For double precision tighter spacing is recommended, by default 
+            False
+        cutoff: float, optional
+            Cutoff of potential for shifted potential, by default 2nm
+        shift: bool, optinal
+            Whether or not to shift the potential, by default None (taken from mie object.)
+        
+        """
+        if names is not None:
+            if not isinstance(names, (tuple, list)):
+                raise ValueError(
+                    "names must be a list or tuple with two \
+                entries."
+                )
+            if len(names) > 2.5 or len(names) < 1.5:
+                raise ValueError(
+                    "names must be a list or tuple with two \
+                entries. "
+                )
+            filename = "table_{:s}_{:s}.xvg".format(*names)
+        else:
+            filename = "table_{:s}_{:s}.xvg".format(
+                str(round(self.l_r, ndigits=3)), str(round(self.l_a, ndigits=3))
+            )
+
+        if shift is None:
+            shift = self.shift
+
+        incr = 0.002
+        if double_prec:
+            incr = 0.0005
+        extension = 1.5
+        r = 0.000
+        corr_a = -1.0 / (self.rc ** self.l_a)
+        corr_r = 1.0 / (self.rc ** self.l_r)
+
+        with open(filename, "w") as t:
+            t.write(
+                "#\n# Table: ndisp={:.3f}, nrep={:.3f}, shift={:s}, cutoff={:.2f}\n#\n".format(
+                    self.l_a, self.l_r, str(shift), cutoff
+                )
+            )
+            while r <= self.rc + extension:
+                if self.l_r / (r + incr) ** (self.l_r + 1) > 1e17:
+                    f, fp, g, gp, h, hp = tuple(0.0 for i in range(6))
+                elif r > self.rc and shift is True:
+                    f, fp, g, gp, h, hp = tuple(0.0 for i in range(6))
+                else:
+                    f = 1.0 / r
+                    fp = f / r
+                    g = -1.0 / (r ** self.l_a)
+                    gp = g * self.l_a / r
+                    h = 1.0 / (r ** self.l_r)
+                    hp = h * self.l_r / r
+
+                if shift is True and r < self.rc:
+                    g -= corr_a
+                    h -= corr_r
+
+                f = round(f, ndigits=10)
+                string = "{:<12.10e}   {:<12.10e} {:<12.10e}   {:<12.10e} {:<12.10e}   {:<12.10e} {:<12.10e}\n".format(
+                    r, f, fp, g, gp, h, hp
+                )
+
+                t.write(string)
+                r += incr
 
     def potential(self, r):
         """

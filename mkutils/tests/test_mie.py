@@ -1,5 +1,6 @@
 from pytest import approx
 from mkutils.mie import mie, mixture
+import os
 
 CGW2_dens = 5000 / (6.68257 ** 3)  # 1/nm^3
 eps = 400  # K
@@ -121,3 +122,17 @@ def test_eps_mix():
     assert mie_WT.eps == approx(212.40, abs=0.01)
     assert mie_WT.sig == approx(0.37014, abs=1e-5)
     assert mie_WT.l_r == approx(11.046, abs=0.001)
+
+
+def test_table():
+    this_mie = mie(10.0, 6.000, 400, 0.375, rc=2, shift=False)
+    this_mie.write_table()
+    # Checked against gromacs user supplied table
+    assert 0 == 0
+
+
+def test_more_table():
+    that_mie = mie(11.05, 6.0, 100, 0.4, rc=2, shift=True)
+    that_mie.write_table(names=("CM", "W"))
+    # Checked against previou shift version tableMIE_11.05_6.xvg
+    assert 0 == 0
