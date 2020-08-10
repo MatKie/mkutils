@@ -202,6 +202,7 @@ class mie(object):
                     "names must be a list or tuple with two \
                 entries. "
                 )
+            names = tuple(name.upper() for name in names)
             filename = "table_{:s}_{:s}.xvg".format(*names)
         else:
             filename = "table_{:s}_{:s}.xvg".format(
