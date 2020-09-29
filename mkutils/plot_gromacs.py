@@ -4,9 +4,12 @@ import warnings
 
 class PlotGromacs(PlotSims):
     def __init__(self, infile="energy.xvg", statistics=None):
+        self.timestep = 1e-5  # ns
         self.infile = infile
         self.properties = self.get_properties()
         self.data = np.loadtxt(self.infile, comments=["@", "#"])
+        self.combined_properties = []
+        self.combined_properties_data = []
 
     def _get_unit(self, prop):
         if "Temperature" in prop:
@@ -48,5 +51,5 @@ class PlotGromacs(PlotSims):
         else:
             x = self.data[:, 0]
             y = self.data[:, pos]
-
-        return x / 1000, y
+            print(x,y)
+        return x / 1000., y
