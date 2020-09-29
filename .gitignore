@@ -14,3 +14,9 @@ mkutils.egg-info/top_level.txt
 .vscode/launch.json
 mkutils/tests/test.json
 test.json
+ffnonbonded.itp
+tableMIE_11.05_6.xvg
+table_CM_W.xvg
+table_10.0_6.0.xvg
+mkutils/tests/rho.out
+mkutils/tests/ffnonbonded.itp
