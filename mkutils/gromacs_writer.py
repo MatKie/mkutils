@@ -138,8 +138,8 @@ class FFWriter(object):
 
     def print_crossints(self):
         _fl = "[ nonbond_params ]"
-        _sl = ";   {:<16s}{:<16s}{:<8s}{:<16s}{:<16s}{:<s}".format(
-            "i", "j", "func", "V(C6)", "W(Cm)", "Ref"
+        _sl = ";   {:<16s}{:<16s}{:<8s}{:<16s}{:<16s}{:<4s}\t{:<7s}\t{:<7s}".format(
+            "i", "j", "func", "V(C6)", "W(Cm)", "Ref", "eps/K", "l_r"
         )
 
         return_string = "\n".join([_fl, _sl])
@@ -167,8 +167,10 @@ class FFWriter(object):
                 mix = mie.mix(_mie_i, _mie_j, rule="SAFT", **_kwargs_mix)
                 C_a = mix.get_C_attr()
                 C_r = mix.get_C_rep()
-                _l = "    {:<16s}{:<16s}{:<8d}{:<16.6e}{:<16.6e}{:<s}".format(
-                    _namei, _namej, 1, C_a, C_r, ";"
+                eps_mix = mix.eps
+                lr_mix = mix.l_r
+                _l = "    {:<16s}{:<16s}{:<8d}{:<16.6e}{:<16.6e}{:<s}{:<s}\t{:<7.2f}\t{:<7.2f}".format(
+                    _namei, _namej, 1, C_a, C_r, ";", "N/A", eps_mix, lr_mix
                 )
                 return_string = "\n".join([return_string, _l])
 
