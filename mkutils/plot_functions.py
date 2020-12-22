@@ -24,6 +24,11 @@ def create_fig(
     marker_size=6,
     line_width=1,
     ticks_top_right=True,
+    tick_direc="out",
+    legend_frameon=False,
+    xscale="linear",
+    yscale="linear",
+    fig_dpi=100,
     sharex=False,
     sharey=False,
 ):
@@ -34,12 +39,9 @@ def create_fig(
 
     # Specify legend
     legend_numpoint = 1
-    legend_frameon = False
+    legend_frameon = legend_frameon
 
     # Specify marker and line size
-
-    # Tick direction
-    tick_direc = "out"
 
     # Tick size
     major_tick_size = 4
@@ -49,7 +51,7 @@ def create_fig(
 
     # Figure properties
     fig_size = (fig_width, fig_height)  # [width, height] in inches
-    fig_dpi = 100  # Increase later
+    fig_dpi = fig_dpi  # Increase later
     fig_facecolor = "white"
     fig_edgecolor = "black"
     fig_edgelinewidth = 0
@@ -58,10 +60,9 @@ def create_fig(
     fig_alpha = 1.0  # Transparency
 
     # Subplot properties
-    splot_xscale = "linear"
-    splot_yscale = "linear"
+    splot_xscale = xscale
+    splot_yscale = yscale
     splot_facecolor = "white"
-    tick_direct = "out"
     border_linewidth = 1.1
 
     # ------------------------------ CODE ------------------------------
@@ -126,15 +127,12 @@ def create_fig(
         newax = fig1.add_subplot(
             sp_row, sp_col, i + 1, xscale=splot_xscale, yscale=splot_yscale
         )
+        if ticks_top_right:
+            newax.tick_params(axis="both", reset=True)
 
         # ,label=str(random.randint(1,10001))
         ax.append(newax)
         ax[i].patch.set_facecolor(splot_facecolor)
-
-        # Turn off ticks right and top
-        if not ticks_top_right:
-            ax[i].yaxis.tick_left()
-            ax[i].xaxis.tick_bottom()
 
     return fig1, ax
 
