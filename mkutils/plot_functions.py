@@ -24,7 +24,7 @@ def create_fig(
     marker_size=6,
     line_width=1,
     ticks_top_right=True,
-    tick_direc="out",
+    tick_direc="in",
     legend_frameon=False,
     xscale="linear",
     yscale="linear",
@@ -106,7 +106,7 @@ def create_fig(
     mpl.rcParams["axes.linewidth"] = border_linewidth
 
     # Create and format figure
-    fig1 = plt.figure(
+    fig = plt.figure(
         num=None,
         figsize=fig_size,
         dpi=fig_dpi,
@@ -116,7 +116,7 @@ def create_fig(
         frameon=fig_frameon,
         tight_layout=fig_tightlayout,
     )
-    fig1.patch.set_alpha(fig_alpha)
+    fig.patch.set_alpha(fig_alpha)
 
     # Define array of subplots
     ax = []
@@ -124,17 +124,51 @@ def create_fig(
     # Loop over all subplots
     for i in range(sp_row * sp_col):
         # Create and format subplot
-        newax = fig1.add_subplot(
-            sp_row, sp_col, i + 1, xscale=splot_xscale, yscale=splot_yscale
+        this_sharex, this_sharey = None, None
+        if sharex and sp_row > 1.1:
+            if i - sp_col < 0:
+                pass
+            else:
+                this_sharex = fig.axes[i - sp_col]
+
+        if sharey and sp_col > 1.1:
+            # only when axis is not leftmost
+            if i % sp_col != 0 and i != 0:
+                # integer division
+                index_y0 = sp_col * (i // sp_col)
+                this_sharey = fig.axes[index_y0]
+
+        fig.add_subplot(
+            sp_row,
+            sp_col,
+            i + 1,
+            xscale=splot_xscale,
+            yscale=splot_yscale,
+            sharex=this_sharex,
+            sharey=this_sharey,
         )
-        if ticks_top_right:
-            newax.tick_params(axis="both", reset=True)
 
-        # ,label=str(random.randint(1,10001))
-        ax.append(newax)
-        ax[i].patch.set_facecolor(splot_facecolor)
+    # Using a 'nice' solution with tick labels for sharex/share surpressed
+    # at creation doesn't work as at creation shared axis are really
+    # identical (change one change the other), therefore this hack.
+    for i in range(sp_row * sp_col):
+        axes_params = {
+            "labelbottom": True,
+            "labelleft": True,
+            "right": True,
+            "top": True,
+        }
+        if sharex and sp_row > 1.1 and i < ((sp_row * sp_col) - sp_col):
+            axes_params.update({"labelbottom": False})
+        if sharey and sp_col > 1.1 and i % sp_col != 0 and i != 0:
+            axes_params.update({"labelleft": False})
 
-    return fig1, ax
+        if not ticks_top_right:
+            axes_params.update({"right": False, "top": False})
+
+        fig.axes[i].tick_params(**axes_params)
+
+    return fig, fig.axes
 
 
 # Set major and minor tick marks on the x and y axis.
