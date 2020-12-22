@@ -23,6 +23,9 @@ def create_fig(
     legend_fontsize=16,
     marker_size=6,
     line_width=1,
+    ticks_top_right=True,
+    sharex=False,
+    sharey=False,
 ):
 
     # ------------------------------ USER INPUT ------------------------------
@@ -129,8 +132,9 @@ def create_fig(
         ax[i].patch.set_facecolor(splot_facecolor)
 
         # Turn off ticks right and top
-        ax[i].yaxis.tick_left()
-        ax[i].xaxis.tick_bottom()
+        if not ticks_top_right:
+            ax[i].yaxis.tick_left()
+            ax[i].xaxis.tick_bottom()
 
     return fig1, ax
 
