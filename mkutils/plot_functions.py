@@ -24,11 +24,7 @@ def create_fig(
     marker_size=6,
     line_width=1,
     ticks_top_right=True,
-<<<<<<< HEAD
-    tick_direc="out",
-=======
     tick_direc="in",
->>>>>>> 424ba6c31a9156d488aa594a86ebeebf91266524
     legend_frameon=False,
     xscale="linear",
     yscale="linear",
@@ -154,13 +150,6 @@ def create_fig(
         if ticks_top_right:
             newax.tick_params(axis="both", reset=True)
 
-<<<<<<< HEAD
-        # ,label=str(random.randint(1,10001))
-        ax.append(newax)
-        ax[i].patch.set_facecolor(splot_facecolor)
-
-    return fig1, ax
-=======
     # Using a 'nice' solution with tick labels for sharex/share surpressed
     # at creation doesn't work as at creation shared axis are really
     # identical (change one change the other), therefore this hack.
@@ -182,7 +171,6 @@ def create_fig(
         fig.axes[i].tick_params(**axes_params)
 
     return fig, fig.axes
->>>>>>> 424ba6c31a9156d488aa594a86ebeebf91266524
 
 
 # Set major and minor tick marks on the x and y axis.
