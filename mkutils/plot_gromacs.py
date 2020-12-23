@@ -15,8 +15,16 @@ class PlotGromacs(PlotSims):
     def _get_unit(self, prop):
         if "Temperature" in prop:
             return "K"
-        elif "Pressure" in prop:
+        elif "Pressure" in prop or "Pres-" in prop:
             return "bar"
+        elif "#Surf*SurfTen" in prop:
+            return r"bar$\,$nm"
+        elif "Box" in prop:
+            return "nm"
+        elif "Volume" in prop:
+            return r"nm^3"
+        elif "Density" in prop:
+            return r"kg$\,$mol$^{-3}$"
         else:
             return r"kJ$\,$mol$^{-1}$"
 
