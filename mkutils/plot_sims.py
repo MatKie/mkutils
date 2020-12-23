@@ -83,6 +83,7 @@ class PlotSims:
         color=None,
         alpha=1,
         label=None,
+        **kwargs
     ):
 
         label = self._get_label(prop, label)
@@ -93,7 +94,7 @@ class PlotSims:
 
         blocks = self.block_average(y, blocksize=int(len(x) / blocksize))
         mean = np.mean(blocks)
-        ax.plot((x[0], x[-1]), (mean, mean), color=color, label=label)
+        ax.plot((x[0], x[-1]), (mean, mean), color=color, label=label, **kwargs)
 
         if err:
             std = np.std(blocks)
