@@ -44,6 +44,7 @@ class PlotSims:
         color=None,
         alpha=1,
         label=None,
+        **kwargs
     ):
         """
         Plot the block averaged timeseries.
@@ -59,11 +60,11 @@ class PlotSims:
         if blocksize:
             x_av = self.block_average(x, blocksize=blocksize)
             y_av = self.block_average(y, blocksize=blocksize)
-            ax.plot(x_av, y_av, color=color, label=label, alpha=alpha)
+            ax.plot(x_av, y_av, color=color, label=label, alpha=alpha, **kwargs)
             alpha = 0.4
             label = ""
         if timeseries:
-            ax.plot(x, y, label=label, color=color, alpha=alpha)
+            ax.plot(x, y, label=label, color=color, alpha=alpha, **kwargs)
 
         self._set_xlims(ax, x, bounds=bounds)
         unit = self._get_unit(prop)
@@ -82,6 +83,7 @@ class PlotSims:
         color=None,
         alpha=1,
         label=None,
+        **kwargs
     ):
 
         label = self._get_label(prop, label)
@@ -92,7 +94,7 @@ class PlotSims:
 
         blocks = self.block_average(y, blocksize=int(len(x) / blocksize))
         mean = np.mean(blocks)
-        ax.plot((x[0], x[-1]), (mean, mean), color=color, label=label)
+        ax.plot((x[0], x[-1]), (mean, mean), color=color, label=label, **kwargs)
 
         if err:
             std = np.std(blocks)

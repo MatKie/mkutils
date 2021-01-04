@@ -25,16 +25,25 @@ this_ff.add_atomtype("Na", 8, 6, 50, 0.23, 23.0, 23)
 
 
 def test_crossint1():
+    """
+    Check if we can redefine crossint without update flag
+    """
     with pytest.raises(ValueError, match=r"Crossint already .*"):
         this_ff.add_crossint("W", "T", 1000)
 
 
 def test_crossint2():
+    """
+    Check if we can define crossint without atomtype
+    """
     with pytest.raises(ValueError, match=r"T3 not an atomtype!"):
         this_ff.add_crossint("W", "T3", 0.5)
 
 
 def test_crossint3():
+    """
+    Update a crossint and check if updated values is in json
+    """
     this_ff.add_crossint("W", "T", 0.31, update=True)
     with open(json_file, "r") as f:
         _ff_dict = json.load(f)
@@ -44,12 +53,26 @@ def test_crossint3():
             assert _ff_dict.get("crossints").get("T:W").get("k") == approx(0.31)
 
 
+def test_crossint4():
+    """
+    Test if eps_mix is false when passed to mie.mix(). We kind of need 
+    to that in the debugger... 
+    """
+    this_ff.print_crossints()
+
+
 def test_atomtype1():
+    """
+    Check if we can redefine atomtypes
+    """
     with pytest.raises(ValueError, match=r"Atomtype already .*"):
         this_ff.add_atomtype("Na", 8, 6, 55, 0.24, 23.1, 23)
 
 
 def test_atomtype2():
+    """
+    Check if everything is read in the right way
+    """
     this_ff.add_atomtype("Na", 9, 7, 55, 0.24, 23.1, 23, update=True)
     with open(json_file, "r") as g:
         _ff_dict = json.load(g)

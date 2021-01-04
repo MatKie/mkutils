@@ -231,6 +231,8 @@ class mie(object):
                     f, fp, g, gp, h, hp = tuple(0.0 for i in range(6))
                 elif r > self.rc and shift is True:
                     f, fp, g, gp, h, hp = tuple(0.0 for i in range(6))
+                elif r < incr / 2.0:
+                    f, fp, g, gp, h, hp = tuple(0.0 for i in range(6))
                 else:
                     f = 1.0 / r
                     fp = f / r

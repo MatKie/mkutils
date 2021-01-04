@@ -2,6 +2,7 @@ from .plot_sims import PlotSims
 import numpy as np
 import warnings
 
+
 class PlotGromacs(PlotSims):
     def __init__(self, infile="energy.xvg", statistics=None):
         self.timestep = 1e-5  # ns
@@ -14,8 +15,16 @@ class PlotGromacs(PlotSims):
     def _get_unit(self, prop):
         if "Temperature" in prop:
             return "K"
-        elif "Pressure" in prop:
+        elif "Pressure" in prop or "Pres-" in prop:
             return "bar"
+        elif "#Surf*SurfTen" in prop:
+            return r"bar$\,$nm"
+        elif "Box" in prop:
+            return "nm"
+        elif "Volume" in prop:
+            return r"nm^3"
+        elif "Density" in prop:
+            return r"kg$\,$mol$^{-3}$"
         else:
             return r"kJ$\,$mol$^{-1}$"
 
@@ -51,5 +60,4 @@ class PlotGromacs(PlotSims):
         else:
             x = self.data[:, 0]
             y = self.data[:, pos]
-            print(x,y)
-        return x / 1000., y
+        return x / 1000.0, y
