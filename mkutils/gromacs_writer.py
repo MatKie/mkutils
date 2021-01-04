@@ -129,7 +129,8 @@ class FFWriter(object):
                 _mie_i = mie(*_argsi)
                 _mie_j = mie(*_argsj)
 
-                mix = mie.mix(_mie_i, _mie_j, rc=cutoff, shift=shift)
+                # eps_mix is actually not used to write the tables
+                mix = mie.mix(_mie_i, _mie_j, eps_mix=1e6, rule=self.rule, rc=cutoff, shift=shift)
 
                 mix.write_table(
                     names=(type_i, type_j),
