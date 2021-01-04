@@ -26,8 +26,9 @@ class FFWriter(object):
     add_crossint():
     """
 
-    def __init__(self, param_file):
+    def __init__(self, param_file, rule="SAFT"):
         self.param_file = param_file
+        self.rule = rule
 
     def add_atomtype(self, name, l_r, l_a, eps, sig, MW, at_num, update=False):
         _dict = {
@@ -53,9 +54,11 @@ class FFWriter(object):
 
         self._close_json(_ff_dict)
 
-    def add_crossint(self, name1, name2, k=0.0, eps_mix=False, update=False):
+    def add_crossint(
+        self, name1, name2, k=0.0, eps_mix=False, sig_mix=False, update=False
+    ):
         _fr_set = frozenset([name1, name2])
-        _dict = {_fr_set: {"k": k, "eps_mix": eps_mix}}
+        _dict = {_fr_set: {"k": k, "eps_mix": eps_mix, "sig_mix": sig_mix}}
 
         _ff_dict = self._open_json()
         for name in [name1, name2]:
@@ -162,9 +165,9 @@ class FFWriter(object):
                 if crossint_id in crossints.keys():
                     _kwargs_mix = crossints.get(crossint_id)
                 else:
-                    _kwargs_mix = {"k": 0.0, "eps_mix": False}
+                    _kwargs_mix = {"k": 0.0, "eps_mix": False, "sig_mix": False}
 
-                mix = mie.mix(_mie_i, _mie_j, rule="SAFT", **_kwargs_mix)
+                mix = mie.mix(_mie_i, _mie_j, rule=self.rule, **_kwargs_mix)
                 C_a = mix.get_C_attr()
                 C_r = mix.get_C_rep()
                 eps_mix = mix.eps
@@ -190,4 +193,4 @@ class FFWriter(object):
             ":".join(key): value for key, value in ff_dict.get("crossints").items()
         }
         with open(self.param_file, "w") as f:
-            json.dump(ff_dict, f)
+            json.dump(ff_dict, f, indent=4, sort_keys=True)
