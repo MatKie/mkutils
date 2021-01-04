@@ -227,7 +227,7 @@ class mie(object):
                 )
             )
             while r <= self.rc + extension:
-                if self.l_r / (r + incr) ** (self.l_r + 1) > 1e17:
+                if self.l_r / (r + incr) ** (self.l_r + 1) > 1e27 or r < incr/2.0:
                     f, fp, g, gp, h, hp = tuple(0.0 for i in range(6))
                 elif r > self.rc and shift is True:
                     f, fp, g, gp, h, hp = tuple(0.0 for i in range(6))

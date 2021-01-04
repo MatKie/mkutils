@@ -114,7 +114,7 @@ class FFWriter(object):
             os.makedirs("tables")
         os.chdir("tables")
         for i, type_i in enumerate(keys):
-            for type_j in keys[i:]:
+            for type_j in keys:
                 atomtype_i = atomtypes.get(type_i)
                 atomtype_j = atomtypes.get(type_j)
                 _argsi = tuple(
