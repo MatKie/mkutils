@@ -105,7 +105,17 @@ class mie(object):
         return cls(12.0, 6.0, eps, sig, rc=rc, shift=shift)
 
     @classmethod
-    def mix(cls, mie1, mie2, rule="SAFT", k=0.0, eps_mix=False, rc=None, shift=False):
+    def mix(
+        cls,
+        mie1,
+        mie2,
+        rule="SAFT",
+        k=0.0,
+        eps_mix=False,
+        rc=None,
+        sig_mix=False,
+        shift=False,
+    ):
         """
         Returns mixed potential acc. to rule. If eps_mix specified k is 
         ignored.
@@ -117,7 +127,9 @@ class mie(object):
         mie2 : mie object
             Second potential.
         rule : str, optional
-            Lorentz-Berthelot, geometric or SAFT tyep, by default "SAFT"
+            Lorentz-Berthelot, geometric, sdk or SAFT tye, by default "SAFT".
+            Sdk: sigma is arithmetic mean, epsilon is required, exponents
+            are 9 - 6 if both are 9 - 6 and 12 - 4 if one is 12 - 4.
         k : float, optional
             eps_mix = (1-k) eps_mix_ideal, by default 0.0
         eps_mix : bool, optional
@@ -136,9 +148,16 @@ class mie(object):
         eps = [mie1.eps, mie2.eps]
         sig = [mie1.sig, mie2.sig]
 
+        if rule == "SDK" and eps_mix is False:
+            raise RuntimeError("eps_mix required with rule SDK")
+        if rule != "SDK" and sig_mix is not False:
+            raise RuntimeError("sig mix only possible with rule SDK")
+
         if eps_mix is not False:
             _, _, eps_0, _ = mie._mix(eps, sig, l_r, l_a, rule=rule, k=0.0)
             k = 1.0 - (eps_mix / eps_0)
+        if sig_mix is not False:
+            sig = [sig_mix, sig_mix]
 
         if rc is None:
             rc = mie1.rc
@@ -151,6 +170,9 @@ class mie(object):
         l_r_mix, l_a_mix, eps_mix, sig_mix = mie._mix(
             eps, sig, l_r=l_r, l_a=l_a, rule=rule, k=k
         )
+        if rule == "SDK":
+            # Retrieve _original_ eps_mix
+            eps_mix = (1.0 - k) * eps_0
 
         return cls(l_r_mix, l_a_mix, eps_mix, sig_mix, rc=rc, shift=shift)
 
@@ -455,6 +477,17 @@ class mie(object):
                 epsilon,
                 sigma,
             )
+        elif rule == "SDK":
+            sigma = np.mean(sig)
+            epsilon = -1
+            if 12.0 in l_r and 4.0 in l_a:
+                l_r = 12.0
+                l_a = 4.0
+            else:
+                l_r = 9.0
+                l_a = 6.0
+            return (l_r, l_a, epsilon, sigma)
+
         else:
             raise ValueError("Unknown Combining Rule Specified!")
 
