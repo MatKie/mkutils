@@ -180,6 +180,41 @@ class FFWriter(object):
 
         return return_string
 
+    def get_crossints(self):
+        return_dict = {}
+        ff_dict = self._open_json()
+        atomtypes = ff_dict.get("atomtypes")
+        crossints = ff_dict.get("crossints")
+        for _namei, atomtypei in atomtypes.items():
+            for _namej, atomtypej in atomtypes.items():
+
+                _argsi = tuple(
+                    atomtypei.get(key) for key in ["l_r", "l_a", "eps", "sig"]
+                )
+                _argsj = tuple(
+                    atomtypej.get(key) for key in ["l_r", "l_a", "eps", "sig"]
+                )
+                _mie_i = mie(*_argsi)
+                _mie_j = mie(*_argsj)
+                crossint_id = frozenset([_namei, _namej])
+                if crossint_id in crossints.keys():
+                    _kwargs_mix = crossints.get(crossint_id)
+                else:
+                    _kwargs_mix = {"k": 0.0, "eps_mix": False, "sig_mix": False}
+
+                mix = mie.mix(_mie_i, _mie_j, rule=self.rule, **_kwargs_mix)
+                sig_mix = mix.sig
+                eps_mix = mix.eps
+                lr_mix = mix.l_r
+                la_mix = mix.l_a
+                temp_dict = {'eps': eps_mix, 'sig': sig_mix, 'l_r': lr_mix, 
+                            'l_a': la_mix}
+                name_dict = {crossint_id: temp_dict}
+                return_dict.update(name_dict)
+        
+        return return_dict
+
+
     def _open_json(self):
         with open(self.param_file, "r") as f:
             ff_dict = json.load(f)

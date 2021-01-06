@@ -147,8 +147,6 @@ def create_fig(
             sharex=this_sharex,
             sharey=this_sharey,
         )
-        if ticks_top_right:
-            newax.tick_params(axis="both", reset=True)
 
     # Using a 'nice' solution with tick labels for sharex/share surpressed
     # at creation doesn't work as at creation shared axis are really
@@ -157,8 +155,8 @@ def create_fig(
         axes_params = {
             "labelbottom": True,
             "labelleft": True,
-            "right": True,
-            "top": True,
+            "right": ticks_top_right,
+            "top": ticks_top_right,
         }
         if sharex and sp_row > 1.1 and i < ((sp_row * sp_col) - sp_col):
             axes_params.update({"labelbottom": False})
