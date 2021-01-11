@@ -73,13 +73,18 @@ class mixture(object):
 
 
 class mie(object):
-    def __init__(self, l_r, l_a, eps, sig, rc=1000.0, shift=False):
+    def __init__(self, l_r, l_a, eps, sig, rc=1000.0, shift=False, wca=False):
         self.R = 8.3144598  # ideal gas constant
         self.l_r = l_r
         self.l_a = l_a
         self.eps = eps
         self.sig = sig
         self.rc = rc
+        self.extension = 1.5
+        if wca:
+            r0 = self._get_r0(l_r, l_a, sig)
+            self.extension += self.rc - r0
+            self.rc = r0
         self.shift = shift
 
     @classmethod
@@ -115,6 +120,7 @@ class mie(object):
         rc=None,
         sig_mix=False,
         shift=False,
+        wca=False,
     ):
         """
         Returns mixed potential acc. to rule. If eps_mix specified k is 
@@ -138,6 +144,9 @@ class mie(object):
             cutoff for calculation or shift, by default None
         shift : bool, optional
             To shift or not to shift, by default False
+        wca : bool, optional
+            Make this a repulsive only interaction by shifting at 
+            the minimum of the potential
 
         Returns
         -------
@@ -174,7 +183,7 @@ class mie(object):
             # Retrieve _original_ eps_mix
             eps_mix = (1.0 - k) * eps_0
 
-        return cls(l_r_mix, l_a_mix, eps_mix, sig_mix, rc=rc, shift=shift)
+        return cls(l_r_mix, l_a_mix, eps_mix, sig_mix, rc=rc, shift=shift, wca=wca)
 
     def write_table(
         self, names=None, eps0=1.0, double_prec=False, cutoff=2.0, shift=None
@@ -237,7 +246,7 @@ class mie(object):
         incr = 0.002
         if double_prec:
             incr = 0.0005
-        extension = 1.5
+        extension = self.extension
         r = 0.000
         corr_a = -1.0 / (self.rc ** self.l_a)
         corr_r = 1.0 / (self.rc ** self.l_r)
@@ -249,7 +258,7 @@ class mie(object):
                 )
             )
             while r <= self.rc + extension:
-                if self.l_r / (r + incr) ** (self.l_r + 1) > 1e27 or r < incr/2.0:
+                if self.l_r / (r + incr) ** (self.l_r + 1) > 1e27 or r < incr / 2.0:
                     f, fp, g, gp, h, hp = tuple(0.0 for i in range(6))
                 elif r > self.rc and shift is True:
                     f, fp, g, gp, h, hp = tuple(0.0 for i in range(6))
@@ -423,6 +432,14 @@ class mie(object):
     @staticmethod
     def prefactor(l_r, l_a):
         return (l_r / (l_r - l_a)) * (l_r / l_a) ** (l_a / (l_r - l_a))
+
+    @staticmethod
+    def _get_r0(l_r, l_a, sig):
+        """
+        Return distance at which potential is -eps, force is 0.
+        """
+        fac = (l_r / l_a) ** (1 / (l_r - l_a))
+        return fac * sig
 
     @staticmethod
     def _mie_integral(l_r, l_a, eps, sig, r):

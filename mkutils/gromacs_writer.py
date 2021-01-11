@@ -55,10 +55,10 @@ class FFWriter(object):
         self._close_json(_ff_dict)
 
     def add_crossint(
-        self, name1, name2, k=0.0, eps_mix=False, sig_mix=False, update=False
+        self, name1, name2, k=0.0, eps_mix=False, sig_mix=False, update=False, wca=False
     ):
         _fr_set = frozenset([name1, name2])
-        _dict = {_fr_set: {"k": k, "eps_mix": eps_mix, "sig_mix": sig_mix}}
+        _dict = {_fr_set: {"k": k, "eps_mix": eps_mix, "sig_mix": sig_mix, "wca": wca}}
 
         _ff_dict = self._open_json()
         for name in [name1, name2]:
@@ -111,6 +111,7 @@ class FFWriter(object):
     def write_tables(self, shift=True, cutoff=2.0, double_prec=False):
         ff_dict = self._open_json()
         atomtypes = ff_dict.get("atomtypes")
+        crossints = ff_dict.get("crossints")
         keys = list(atomtypes.keys())
 
         if not os.path.isdir("tables"):
@@ -129,8 +130,21 @@ class FFWriter(object):
                 _mie_i = mie(*_argsi)
                 _mie_j = mie(*_argsj)
 
-                # eps_mix is actually not used to write the tables
-                mix = mie.mix(_mie_i, _mie_j, eps_mix=1e6, rule=self.rule, rc=cutoff, shift=shift)
+                this_ci = crossints.get(frozenset([type_i, type_j]), {})
+                sig_mix = this_ci.get("sig_mix", False)
+                wca = this_ci.get("wca", False)
+
+                # eps_mix is not actually used for tables
+                mix = mie.mix(
+                    _mie_i,
+                    _mie_j,
+                    eps_mix=1e6,
+                    sig_mix=sig_mix,
+                    rule=self.rule,
+                    rc=cutoff,
+                    shift=shift,
+                    wca=wca,
+                )
 
                 mix.write_table(
                     names=(type_i, type_j),
@@ -207,13 +221,16 @@ class FFWriter(object):
                 eps_mix = mix.eps
                 lr_mix = mix.l_r
                 la_mix = mix.l_a
-                temp_dict = {'eps': eps_mix, 'sig': sig_mix, 'l_r': lr_mix, 
-                            'l_a': la_mix}
+                temp_dict = {
+                    "eps": eps_mix,
+                    "sig": sig_mix,
+                    "l_r": lr_mix,
+                    "l_a": la_mix,
+                }
                 name_dict = {crossint_id: temp_dict}
                 return_dict.update(name_dict)
-        
-        return return_dict
 
+        return return_dict
 
     def _open_json(self):
         with open(self.param_file, "r") as f:
