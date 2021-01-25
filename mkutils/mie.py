@@ -416,6 +416,40 @@ class mie(object):
 
         return diff
 
+    def vdw_integral(self, r_upper=None):
+        """
+        Integrate over the vdw attractive energy (volume integral of 
+        Mie potential):
+
+        vdw = 2 pi \int_sigma^r_upper u_mie(r)*r*r dr
+
+        vdw = 2*pi*C_mie*eps {[-1/(l_r-3) * simga**l_r/r**(l_r-3)] 
+                              +[1/(l_a-3) * sigma**l_a/r**(l_a-3)]
+                             }
+
+        Parameters
+        ----------
+        r_upper : float, optional
+            upper boundary for integral, None means cutoffradius if given 
+            , by default None
+
+        Returns
+        -------
+        float
+            vdw attractive energy.
+        """
+        if r_upper is None:
+            r_upper = self.rc
+
+        int_upper = self._mie_integral(
+            self.l_r, self.l_a, self.eps, self.sig, r_upper, vdw_int=True
+        )
+        int_lower = self._mie_integral(
+            self.l_r, self.l_a, self.eps, self.sig, self.sig, vdw_int=True
+        )
+
+        return int_upper - int_lower
+
     @staticmethod
     def _mie(l_r, l_a, eps, sig, r):
         c = mie.prefactor(l_r, l_a)
@@ -442,14 +476,19 @@ class mie(object):
         return fac * sig
 
     @staticmethod
-    def _mie_integral(l_r, l_a, eps, sig, r):
+    def _mie_integral(l_r, l_a, eps, sig, r, vdw_int=False):
         """
         Evaluation of the indefinite integral of the Mie potential
         at r.
+        If vdw_int is true, we do the indefinite volumen integral instead.
         """
         c = mie.prefactor(l_r, l_a)
-        int_r = ((-1 * sig ** l_r) / (l_r - 1)) * r ** (-l_r + 1)
-        int_a = ((sig ** l_a) / (l_a - 1)) * r ** (-l_a + 1)
+        l_diff = 1
+        if vdw_int:
+            l_diff = 3
+            c *= 2.0 * np.pi
+        int_r = ((-1 * sig ** l_r) / (l_r - l_diff)) * r ** (-l_r + l_diff)
+        int_a = ((sig ** l_a) / (l_a - l_diff)) * r ** (-l_a + l_diff)
 
         return c * eps * (int_r + int_a)
 
