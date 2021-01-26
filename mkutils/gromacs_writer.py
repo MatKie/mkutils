@@ -4,6 +4,7 @@ import os
 
 
 class FFWriter(object):
+    def __init__(self, param_file, rule="SAFT"):
     """
     Writes Forcefield information for GROMACS from a json file with all
     the necessary data. 
@@ -18,19 +19,49 @@ class FFWriter(object):
         'MW': float }}, 
         'crossints': {frozenset('Atom1', 'Atom2'): float (k_ij)}
         }
-    
+    rule : str, optional
+        Either SAFT or SDK (for the SDK/SPICA forcefield). By default SAFT. 
     Methods
     -------
     add_atomtype():
-
+        Add an atomtype, e.g. CM
     add_crossint():
+        Add a cross interaction, e.g. CM - CT
     """
-
-    def __init__(self, param_file, rule="SAFT"):
         self.param_file = param_file
         self.rule = rule
 
     def add_atomtype(self, name, l_r, l_a, eps, sig, MW, at_num, update=False):
+        '''
+        Add an atomtype/group to the forcefield. Bascially all the self
+        paramters.
+
+        Parameters
+        ----------
+        name : str
+            Name of the group/atomtype to add
+        l_r : float
+            repulsive exponent of mie potential.
+        l_a : float
+            attractive exponent of mie potential.
+        eps : float
+            well depth of mie potential in Kelvin.
+        sig : float
+            sigma parameter of mie potential in nm.
+        MW : float
+            molecular weight of group. 
+        at_num : int
+            The proton number of a group. I think it's unused but better
+            save than sorry.
+        update : bool, optional
+            This flag needs to be set when we have already defined the atomtype to not accidentally overwrite it, by default False
+
+        Raises
+        ------
+        ValueError
+            If the atomtype is already in the parameter file (.json file)
+            and we did not explicitly set the update flag.
+        '''        
         _dict = {
             name: {
                 "l_r": l_r,
@@ -57,6 +88,36 @@ class FFWriter(object):
     def add_crossint(
         self, name1, name2, k=0.0, eps_mix=False, sig_mix=False, update=False, wca=False
     ):
+        '''
+        Add specific crossinteractions if they don't follow mixing rules.
+        Can either be specified by k_ij or directly the well depth. 
+        Be a nice kid and don't specify both as I'm too lazy checking
+        with one has priority.
+
+        Parameters
+        ----------
+        name1 : str
+            group 1 name.
+        name2 : str
+            group 2 name.
+        k : float, optional
+            k_ij as defined by: eps_mix = (1-k_ij)*eps_mix_rule, by default 0.0.
+        eps_mix : bool or float, optional
+            If float well depth of this interaction in Kelvin , by default False.
+        sig_mix : bool or float, optional
+            If given, sigma parameter in nm. Don't know if it works for SAFT rule as it was designed for SDK rule. So check if it's giving you the right results, by default False.
+        update : bool, optional
+            This flag needs to be set when we have already defined the atomtype to not accidentally overwrite it, by default False.
+        wca : bool, optional
+            if True, the potential is shifted by the well depth at the location of the potential well. This results in a purely repulsive potential (Weeks-chandler-anderson for 12-6), by default False.
+
+        Raises
+        ------
+        ValueError
+            When you didn't put update flag to true and changing things around.
+        ValueError
+            If one of the groups is not already added as an atomtype.
+        '''    
         _fr_set = frozenset([name1, name2])
         _dict = {_fr_set: {"k": k, "eps_mix": eps_mix, "sig_mix": sig_mix, "wca": wca}}
 
@@ -78,6 +139,26 @@ class FFWriter(object):
         self._close_json(_ff_dict)
 
     def write_forcefield(self, outfile="ffnonbonded.itp"):
+        '''
+        Write the nonbonded part of the forcefield from all the info
+        we put in so far.
+
+        The important calculations are made in mie.get_C_attr() and mie.get_C_rep() in mie.py.
+
+        C_rep  = C_mie*eps*sig^l_r 
+        C_attr = C_mie*eps*sig^l_a
+        
+        These later get multiplied with what's in the tables:
+
+        C_attr g(r) + C_rep h(r), where
+        g(r) = -(1/r)^l_a
+        h(r) = (1/r)^l_r
+
+        Parameters
+        ----------
+        outfile : str, optional
+            how to name the outputfile, by default "ffnonbonded.itp"
+        '''
         atomtypes = self.print_atomtypes()
         crossints = self.print_crossints()
         with open(outfile, "w") as f:
@@ -86,6 +167,14 @@ class FFWriter(object):
             f.write(crossints)
 
     def print_atomtypes(self):
+        '''
+        Generates the self interaction. passes all relevant info to mie from mie.py.
+
+        Returns
+        -------
+        string
+            string of the self interactions.
+        '''
         _fl = "[ atomtypes ]"
         _sl = ";   {:<16s}{:<8s}{:<12s}{:<8s}{:<8s}{:<16s}{:<16s}{:<s}".format(
             "name", "at.num", "mass", "charge", "ptype", "V(C6)", "W(Cm)", "Ref"
@@ -109,6 +198,29 @@ class FFWriter(object):
         return return_string
 
     def write_tables(self, shift=True, cutoff=2.0, double_prec=False):
+        '''
+        Write tables for all self and cross interactions into the folder 'tables'. All possible tables are generated (CM-CT and CT-CM) so we don't have to care how we define it later on in the energygroups.
+
+        This makes use of mie.mix & mie.write_table from mie.py.
+
+        V(r) = q_i*q_j/eps0 f(r) + C_la g(r) + C_lr h(r)
+
+        -> Tables include r, f(r), -f'(r), g(r), -g'(r), h(r), h'(r)
+
+        For a 8-6 potential g, h and derivatives are:
+
+        g(r) = -(1/r)^6, -g'(r) = -6*(1/r)^7 (force, attractive)
+        h(r) = (1/r)^8, -h'(r) = 8*(1/r)^9 (force, repulsive)
+
+        Parameters
+        ----------
+        shift : bool, optional
+            Whether or not to shift the potential at curoff, by default True
+        cutoff : float, optional
+            last point in tables (not including table extension), by default 2.0
+        double_prec : bool, optional
+            Wheter or not to write double precision tables which are more closely spaced, by default False
+        '''
         ff_dict = self._open_json()
         atomtypes = ff_dict.get("atomtypes")
         crossints = ff_dict.get("crossints")
@@ -155,6 +267,14 @@ class FFWriter(object):
         os.chdir("..")
 
     def print_crossints(self):
+        '''
+        Calculate a mie potential for the crossinteraction via mie.mix from mie.py and then the attractive and repulsive exponents vie _get_C_attr() and _get_C_rep(). Also print some comments like eps-mix and l_r-mix.
+
+        Returns
+        -------
+        string
+            string of all the crossints.
+        '''
         _fl = "[ nonbond_params ]"
         _sl = ";   {:<16s}{:<16s}{:<8s}{:<16s}{:<16s}{:<4s}\t{:<7s}\t{:<7s}".format(
             "i", "j", "func", "V(C6)", "W(Cm)", "Ref", "eps/K", "l_r"
@@ -195,6 +315,14 @@ class FFWriter(object):
         return return_string
 
     def get_crossints(self):
+        '''
+        Calculates all parameters, also from mixing rules.
+
+        Returns
+        -------
+        dict
+            dictionary with all cross interactions (and self interactions). Also the ones acc. to mixing rules.
+        '''
         return_dict = {}
         ff_dict = self._open_json()
         atomtypes = ff_dict.get("atomtypes")

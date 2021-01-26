@@ -352,7 +352,7 @@ class mie(object):
         Calculate gromacs coefficient associatted with the repulsive
         part of the potential.
 
-        C_attr = C*eps*sig^l_r, where C is from Mie potential
+        C_rep = C*eps*sig^l_r, where C is from Mie potential
         """
         prefac = mie.prefactor(self.l_r, self.l_a)
         return prefac * self.eps / 1000.0 * self.R * self.sig ** self.l_r
