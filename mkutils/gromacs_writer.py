@@ -32,7 +32,7 @@ class FFWriter(object):
         self.rule = rule
 
     def add_atomtype(self, name, l_r, l_a, eps, sig, MW, at_num, update=False):
-        '''
+        """
         Add an atomtype/group to the forcefield. Bascially all the self
         paramters.
 
@@ -61,7 +61,7 @@ class FFWriter(object):
         ValueError
             If the atomtype is already in the parameter file (.json file)
             and we did not explicitly set the update flag.
-        '''        
+        """
         _dict = {
             name: {
                 "l_r": l_r,
@@ -88,7 +88,7 @@ class FFWriter(object):
     def add_crossint(
         self, name1, name2, k=0.0, eps_mix=False, sig_mix=False, update=False, wca=False
     ):
-        '''
+        """
         Add specific crossinteractions if they don't follow mixing rules.
         Can either be specified by k_ij or directly the well depth. 
         Be a nice kid and don't specify both as I'm too lazy checking
@@ -117,7 +117,7 @@ class FFWriter(object):
             When you didn't put update flag to true and changing things around.
         ValueError
             If one of the groups is not already added as an atomtype.
-        '''    
+        """
         _fr_set = frozenset([name1, name2])
         _dict = {_fr_set: {"k": k, "eps_mix": eps_mix, "sig_mix": sig_mix, "wca": wca}}
 
@@ -139,7 +139,7 @@ class FFWriter(object):
         self._close_json(_ff_dict)
 
     def write_forcefield(self, outfile="ffnonbonded.itp"):
-        '''
+        """
         Write the nonbonded part of the forcefield from all the info
         we put in so far.
 
@@ -158,7 +158,7 @@ class FFWriter(object):
         ----------
         outfile : str, optional
             how to name the outputfile, by default "ffnonbonded.itp"
-        '''
+        """
         atomtypes = self.print_atomtypes()
         crossints = self.print_crossints()
         with open(outfile, "w") as f:
@@ -167,14 +167,14 @@ class FFWriter(object):
             f.write(crossints)
 
     def print_atomtypes(self):
-        '''
+        """
         Generates the self interaction. passes all relevant info to mie from mie.py.
 
         Returns
         -------
         string
             string of the self interactions.
-        '''
+        """
         _fl = "[ atomtypes ]"
         _sl = ";   {:<16s}{:<8s}{:<12s}{:<8s}{:<8s}{:<16s}{:<16s}{:<s}".format(
             "name", "at.num", "mass", "charge", "ptype", "V(C6)", "W(Cm)", "Ref"
@@ -198,7 +198,7 @@ class FFWriter(object):
         return return_string
 
     def write_tables(self, shift=True, cutoff=2.0, double_prec=False):
-        '''
+        """
         Write tables for all self and cross interactions into the folder 'tables'. All possible tables are generated (CM-CT and CT-CM) so we don't have to care how we define it later on in the energygroups.
 
         This makes use of mie.mix & mie.write_table from mie.py.
@@ -220,7 +220,7 @@ class FFWriter(object):
             last point in tables (not including table extension), by default 2.0
         double_prec : bool, optional
             Wheter or not to write double precision tables which are more closely spaced, by default False
-        '''
+        """
         ff_dict = self._open_json()
         atomtypes = ff_dict.get("atomtypes")
         crossints = ff_dict.get("crossints")
@@ -267,14 +267,14 @@ class FFWriter(object):
         os.chdir("..")
 
     def print_crossints(self):
-        '''
+        """
         Calculate a mie potential for the crossinteraction via mie.mix from mie.py and then the attractive and repulsive exponents vie _get_C_attr() and _get_C_rep(). Also print some comments like eps-mix and l_r-mix.
 
         Returns
         -------
         string
             string of all the crossints.
-        '''
+        """
         _fl = "[ nonbond_params ]"
         _sl = ";   {:<16s}{:<16s}{:<8s}{:<16s}{:<16s}{:<4s}\t{:<7s}\t{:<7s}".format(
             "i", "j", "func", "V(C6)", "W(Cm)", "Ref", "eps/K", "l_r"
@@ -315,14 +315,14 @@ class FFWriter(object):
         return return_string
 
     def get_crossints(self):
-        '''
+        """
         Calculates all parameters, also from mixing rules.
 
         Returns
         -------
         dict
             dictionary with all cross interactions (and self interactions). Also the ones acc. to mixing rules.
-        '''
+        """
         return_dict = {}
         ff_dict = self._open_json()
         atomtypes = ff_dict.get("atomtypes")
