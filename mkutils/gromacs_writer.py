@@ -31,6 +31,24 @@ class FFWriter(object):
         self.param_file = param_file
         self.rule = rule
 
+    def add_cgw_ift(self, T, name="W", update=False):
+        """
+        Calculates the sigma, epsilon parameters for ift water model
+        (see Lobanova et al 2015) for a given T (in Kelvin)
+
+        Parameters
+        ----------
+        T : float
+            Temperature in Kelvin
+        name : str,optional
+            str of you water bead, by default 'W'
+        update : bool, optional
+            Set if water type already defined, by default False
+        """
+        ift_mie = mie.cgw_ift(T)
+        l_r, l_a, eps, sig = ift_mie.l_r, ift_mie.l_a, ift_mie.eps, ift_mie.sig
+        self.add_atomtype("W", l_r, l_a, eps, sig, 18.01528, 10, update=update)
+
     def add_atomtype(self, name, l_r, l_a, eps, sig, MW, at_num, update=False):
         """
         Add an atomtype/group to the forcefield. Bascially all the self
