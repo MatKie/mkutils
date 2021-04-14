@@ -61,3 +61,48 @@ class PlotGromacs(PlotSims):
             x = self.data[:, 0]
             y = self.data[:, pos]
         return x / 1000.0, y
+
+    @staticmethod
+    def _parse_line(line):
+        sep = "  "
+        variables = [""] * 6  # six variables to hold
+        var = 0
+        for i, char in enumerate(line):
+            if line[i : i + len(sep)] != sep:
+                variables[var] += char
+                write = True
+            elif line[i : i + len(sep)] == sep and write == True:
+                if var > 3.5:
+                    sep = "  "  # first and last variable eventually have spaces
+                else:
+                    sep = " "
+                var += 1
+                write = False
+            else:
+                pass
+
+        variables[1:-1] = [float(variable) for variable in variables[1:-1]]
+        data = {
+            variables[0]: {
+                "Average": variables[1],
+                "Error": variables[2],
+                "RMSD": variables[3],
+                "Drift": variables[4],
+                "Unit": variables[5].strip(")").strip("("),
+            }
+        }
+        return data
+
+    @staticmethod
+    def get_gmx_stats(gmx_file):
+        data = {}
+        with open(gmx_file, "r") as f:
+            switch = False
+            for line in f:
+                if line[:10] == "-" * 10 and not switch:
+                    switch = True
+                elif switch:
+                    data.update(PlotGromacs._parse_line(line))
+                else:
+                    pass
+        return data
