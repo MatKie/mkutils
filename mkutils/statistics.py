@@ -51,7 +51,7 @@ class MultiModalEvaluation(object):
         self.cov = None
         self._stride = None
 
-    def fit(self, *args, model="standard", modality=1, bins=25, density=True, **kwargs):
+    def fit(self, *args, model="standard", modality=1, bins=25, density=True, xy=None,**kwargs):
         """
         Fit a one or more probability distributions to your data.
         *args takes the initial guesses for you model parameters for 
@@ -73,6 +73,8 @@ class MultiModalEvaluation(object):
         density : bool, optional
             Wether or not to use probability density or absolute counts, 
             by default True
+        xy : list like of two array likes
+            If external x,y is supplied instead of data to be binned.
         """
         model_dict = self.get_model().get(model)
         self._stride = model_dict.get("parameters")
@@ -80,7 +82,10 @@ class MultiModalEvaluation(object):
         self.modality = modality
         self.bins = bins
         self.density = density
-        x, y = self.bin_data(**kwargs)
+        if xy is None:
+            x, y = self.bin_data(**kwargs)
+        else:
+            x, y = xy
 
         initial_guess = args
         self.params, self.cov = curve_fit(self.obj_fct, x, y, initial_guess)
