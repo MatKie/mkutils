@@ -277,7 +277,7 @@ def spline(x, y, order, x_points):
     return x_new, y_new
 
 
-def save_to_file(filename, fig=None):
+def save_to_file(filename, fig=None, bbox_inches=None, pad_inches=0.1):
     """Save to @filename with a custom set of file formats.
     
     By default, this function takes to most recent figure,
@@ -289,7 +289,7 @@ def save_to_file(filename, fig=None):
     ]
     if fig is None:
         for form in formats:
-            plt.savefig("{0:s}.{1:s}".format(filename, form))
+            plt.savefig("{0:s}.{1:s}".format(filename, form, bbox_inches=bbox_inches, pad_inches=pad_inches))
     else:
         for form in formats:
-            fig.savefig("{0:s}.{1:s}".format(filename, form))
+            fig.savefig("{0:s}.{1:s}".format(filename, form, bbox_inches=bbox_inches, pad_inches=pad_inches))
